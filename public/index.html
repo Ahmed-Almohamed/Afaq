@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Afaq</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="page">
+      <header class="header">
+        <div class="header-top">
+          <div></div>
+          <label class="lang-switch" for="lang-select">
+            <span id="lang-label">Language</span>
+            <select id="lang-select" aria-label="Language">
+              <option value="en">English</option>
+              <option value="ar">العربية</option>
+            </select>
+          </label>
+        </div>
+        <h1 class="title" id="title-text">Afaq</h1>
+        <p class="subtitle" id="subtitle-text">Sales reporting</p>
+      </header>
+
+      <div id="banner" class="banner" role="status" aria-live="polite" hidden></div>
+
+      <main class="main">
+        <section class="card">
+          <h2 class="card-title" id="new-entry-title">New entry</h2>
+          <div class="load-saved-block" id="load-saved-wrap">
+            <h3 class="load-saved-title" id="load-saved-title">Load saved entry</h3>
+            <div class="field">
+              <label for="history-store" id="label-history-store">Store</label>
+              <select id="history-store" name="history-store">
+                <option value="" id="history-store-placeholder">Select store</option>
+                <option value="micro store">micro store</option>
+                <option value="zmord store">zmord store</option>
+                <option value="birq store">birq store</option>
+                <option value="alshahens store">alshahens store</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="history-platform" id="label-history-platform">Platform</label>
+              <select id="history-platform" name="history-platform">
+                <option value="" id="history-platform-placeholder">Select platform</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="history-record" id="label-history-record">Record</label>
+              <select id="history-record" name="history-record">
+                <option value="" id="history-record-placeholder">Select record</option>
+              </select>
+            </div>
+            <button type="button" class="submit-btn secondary-btn" id="history-load-btn">
+              Load into form
+            </button>
+          </div>
+          <form id="sales-form" class="form" novalidate>
+            <div class="field">
+              <label for="date" id="label-date">Date</label>
+              <input type="date" id="date" name="date" required />
+            </div>
+
+            <div class="field">
+              <label for="store" id="label-store">Store</label>
+              <select id="store" name="store" required>
+                <option value="" id="select-store-option">Select store</option>
+                <option value="micro store">micro store</option>
+                <option value="zmord store">zmord store</option>
+                <option value="birq store">birq store</option>
+                <option value="alshahens store">alshahens store</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="platform" id="label-platform">Platform</label>
+              <select id="platform" name="platform">
+                <option value="" id="select-platform-option">Select platform</option>
+                <option value="Meta">Meta</option>
+                <option value="TikTok">TikTok</option>
+                <option value="Google">Google</option>
+                <option value="Snapchat">Snapchat</option>
+                <option value="Google Shopping">Google Shopping</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="ads_count" id="label-ads-count">Ads count</label>
+              <input
+                type="number"
+                id="ads_count"
+                name="ads_count"
+                min="0"
+                step="1"
+                inputmode="numeric"
+              />
+            </div>
+
+            <div class="field">
+              <label for="platform_sales" id="label-platform-sales">Platform sales</label>
+              <input
+                type="number"
+                id="platform_sales"
+                name="platform_sales"
+                min="0"
+                step="1"
+                inputmode="numeric"
+              />
+            </div>
+
+            <div class="field">
+              <label for="whatsapp_sales" id="label-whatsapp-sales">WhatsApp sales</label>
+              <input
+                type="number"
+                id="whatsapp_sales"
+                name="whatsapp_sales"
+                min="0"
+                step="1"
+                inputmode="numeric"
+              />
+            </div>
+
+            <div class="field">
+              <label for="unknown_sales" id="label-unknown-sales">Unknown sales</label>
+              <input
+                type="number"
+                id="unknown_sales"
+                name="unknown_sales"
+                min="0"
+                step="1"
+                inputmode="numeric"
+              />
+            </div>
+
+            <div class="field">
+              <label for="cost" id="label-cost">Cost</label>
+              <input
+                type="number"
+                id="cost"
+                name="cost"
+                min="0"
+                step="0.01"
+                inputmode="decimal"
+              />
+            </div>
+
+            <div class="field">
+              <label for="content_cost" id="label-content-cost">Content production cost</label>
+              <input
+                type="number"
+                id="content_cost"
+                name="content_cost"
+                min="0"
+                step="0.01"
+                inputmode="decimal"
+              />
+            </div>
+
+            <div class="field">
+              <label for="purchase_count" id="label-purchase-count">Total purchases</label>
+              <input
+                type="number"
+                id="purchase_count"
+                name="purchase_count"
+                min="0"
+                step="1"
+                inputmode="numeric"
+                readonly
+                tabindex="-1"
+                aria-readonly="true"
+                class="input-readonly"
+              />
+            </div>
+
+            <div class="field field--full">
+              <label id="label-purchase-value">Purchase values</label>
+              <div id="purchase-values-container"></div>
+            </div>
+
+            <div class="field">
+              <label for="whatsapp_clicks" id="label-whatsapp-clicks">WhatsApp clicks</label>
+              <input
+                type="number"
+                id="whatsapp_clicks"
+                name="whatsapp_clicks"
+                min="0"
+                step="1"
+                inputmode="numeric"
+              />
+            </div>
+
+            <div class="metrics field--full" aria-live="polite">
+              <div class="metric">
+                <span class="metric-label" id="label-total-sales">Total purchases</span>
+                <span class="metric-value" id="total-sales">0</span>
+              </div>
+              <div class="metric">
+                <span class="metric-label" id="label-value-cost-ratio">Value / cost</span>
+                <span class="metric-value" id="value-cost-ratio">—</span>
+              </div>
+              <div class="metric">
+                <span class="metric-label" id="label-cost-per-purchase">Cost per purchase</span>
+                <span class="metric-value" id="cost-per-purchase">—</span>
+              </div>
+              <div class="metric">
+                <span class="metric-label" id="label-roas">ROAS (معدل البيع)</span>
+                <span class="metric-value" id="roas-value">—</span>
+              </div>
+            </div>
+
+            <button type="submit" class="submit-btn field--full" id="submit-btn">Save entry</button>
+          </form>
+        </section>
+
+        <section class="card">
+          <h2 class="card-title" id="saved-records-title">Saved records</h2>
+          <p class="hint" id="records-hint">Loading…</p>
+          <div class="export-controls">
+            <div class="export-type-row">
+              <label for="export-type" id="label-export-type">Report type</label>
+              <select id="export-type">
+                <option value="daily" id="export-type-daily">Daily</option>
+                <option value="weekly" id="export-type-weekly">Weekly</option>
+                <option value="monthly" id="export-type-monthly">Monthly</option>
+              </select>
+            </div>
+            <div class="export-period-row export-range-row">
+              <label for="export-start-date" id="label-export-start-date">From</label>
+              <input type="date" id="export-start-date" />
+              <label for="export-end-date" id="label-export-end-date">To</label>
+              <input type="date" id="export-end-date" />
+            </div>
+            <label for="export-store" id="label-export-store">Export store</label>
+            <select id="export-store">
+              <option value="" id="export-store-all-option">All stores</option>
+              <option value="micro store">micro store</option>
+              <option value="zmord store">zmord store</option>
+              <option value="birq store">birq store</option>
+              <option value="alshahens store">alshahens store</option>
+            </select>
+          </div>
+          <button type="button" class="submit-btn export-btn" id="export-btn">Export report</button>
+          <button type="button" class="submit-btn seed-btn" id="seed-btn">Generate 30-day test data</button>
+          <div class="export-by-day" id="export-by-day-wrap" hidden>
+            <label class="export-by-day-label" for="export-day-select" id="export-by-day-label"
+              >Export by day</label
+            >
+            <div class="export-by-day-row">
+              <select id="export-day-select" aria-describedby="export-by-day-label">
+                <option value="" id="export-day-placeholder">Select day</option>
+              </select>
+              <button type="button" class="day-export-btn" id="export-day-btn">Export</button>
+            </div>
+          </div>
+          <div class="table-wrap" id="records-wrap" hidden>
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th id="th-date">Date</th>
+                  <th id="th-store">Store</th>
+                  <th id="th-platform">Platform</th>
+                  <th id="th-ads">Ads</th>
+                  <th id="th-platform-sales">P. sales</th>
+                  <th id="th-wa">WA</th>
+                  <th id="th-unk">Unk</th>
+                  <th id="th-cost">Cost</th>
+                  <th id="th-purchase-count">Purchases</th>
+                  <th id="th-purchase-value">P. value</th>
+                  <th id="th-cpp">CPP</th>
+                  <th id="th-clicks">Clicks</th>
+                  <th id="th-roas-days">Value/cost streak</th>
+                  <th id="th-roas">ROAS</th>
+                  <th id="th-action">Action</th>
+                </tr>
+              </thead>
+              <tbody id="records-body"></tbody>
+            </table>
+          </div>
+        </section>
+      </main>
+
+      <footer class="footer">
+        <p id="footer-text">
+          MADE BY A7MED
+          <span aria-hidden="true">.</span>
+          <a href="https://github.com/Ahmed-Almohamed" target="_blank" rel="noopener">GITHUB</a>
+        </p>
+      </footer>
+    </div>
+
+    <div class="modal-backdrop" id="supplement-modal" hidden>
+      <section class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="supplement-title">
+        <div class="modal-head">
+          <div>
+            <h2 id="supplement-title">Weekly additions</h2>
+            <p id="supplement-subtitle">Paste the WhatsApp Excel range and add content costs.</p>
+          </div>
+          <button type="button" class="modal-close" id="supplement-cancel" aria-label="Close">×</button>
+        </div>
+
+        <div class="supplement-paste-block" id="supplement-paste-block">
+          <label class="modal-label" for="supplement-paste" id="supplement-paste-label">
+            Excel paste
+          </label>
+          <textarea
+            id="supplement-paste"
+            class="modal-textarea"
+            rows="9"
+            placeholder="Paste the copied Excel cells here"
+          ></textarea>
+        </div>
+
+        <div class="modal-grid">
+          <div class="field">
+            <label for="supplement-content-count" id="supplement-content-count-label">Content count</label>
+            <input type="number" id="supplement-content-count" min="0" step="1" inputmode="numeric" />
+          </div>
+          <div class="field">
+            <label for="supplement-content-cost" id="supplement-content-cost-label">Content cost</label>
+            <input type="number" id="supplement-content-cost" min="0" step="0.01" inputmode="decimal" />
+          </div>
+          <div class="field supplement-weekly-field">
+            <label for="supplement-unanswered" id="supplement-unanswered-label">No-reply purchases</label>
+            <input type="number" id="supplement-unanswered" min="0" step="1" inputmode="numeric" />
+          </div>
+          <div class="field supplement-weekly-field">
+            <label for="supplement-prev-unanswered" id="supplement-prev-unanswered-label">Previous no-reply purchases</label>
+            <input type="number" id="supplement-prev-unanswered" min="0" step="1" inputmode="numeric" />
+          </div>
+          <div class="field supplement-monthly-field">
+            <label for="supplement-seo-purchases" id="supplement-seo-purchases-label">SEO purchases</label>
+            <input type="number" id="supplement-seo-purchases" min="0" step="1" inputmode="numeric" />
+          </div>
+        </div>
+
+        <p class="modal-preview" id="supplement-preview">No pasted data yet.</p>
+
+        <div class="modal-actions">
+          <button type="button" class="secondary-btn" id="supplement-skip">Skip</button>
+          <button type="button" class="submit-btn" id="supplement-continue">Continue export</button>
+        </div>
+      </section>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>
