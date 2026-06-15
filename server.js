@@ -439,7 +439,7 @@ async function startServer() {
       console.log(`  Database: ${process.env.DATABASE_URL ? "PostgreSQL (Railway)" : "PostgreSQL (Local)"}`);
     });
   } catch (error) {
-    console.error("✗ Failed to start server:", error.message);
+    console.error("✗ Failed to start server:", error);
     process.exit(1);
   }
 }
