@@ -1,134 +1,187 @@
-# Afaq Data Analyst App
+# Afaq — Sales Intelligence Platform
 
-Afaq is a lightweight sales reporting web app built with Node.js, Express, and PostgreSQL. It provides a bilingual (English/Arabic) data entry UI, sales record management, export reporting, and sample data generation.
+> Bilingual sales reporting and analytics for modern retail operations.  
+> Built with Node.js · Express · PostgreSQL
+
+---
+
+## What Is Afaq?
+
+**Afaq** (أفق — Arabic for "horizons") is a lightweight, production-ready web application that turns raw sales data into clear, actionable reports. Designed for teams that operate across English and Arabic markets, it gives you a single place to record, manage, and export your sales activity — with zero friction.
+
+Whether you're tracking a single store or multiple platforms, Afaq handles the math, organises your records, and exports clean reports in seconds.
+
+---
 
 ## Features
 
-- Add, edit, and delete sales records
-- Bilingual English/Arabic user interface
-- Automated purchase count and value calculations
-- Export daily, weekly, and monthly reports to text files
-- Load saved entries by store/platform
-- Sample seed data generation for testing
-- PostgreSQL backend with automatic table creation and indexing
+### 📊 Sales Record Management
+- Add, edit, and delete sales records with a clean, minimal UI
+- Automated purchase count and revenue calculations — no manual totalling
+- Load saved entries filtered by store or platform
+
+### 🌐 Bilingual Interface
+- Full English / Arabic (عربي) support built into the UI
+- Right-to-left layout handled natively
+
+### 📁 Report Export
+- Export **daily**, **weekly**, and **monthly** reports to text files
+- One-click download, no configuration needed
+
+### 🌱 Sample Data Generation
+- Seed the database with realistic test data for demos or development
+- Useful for onboarding new team members or QA testing
+
+### 🗄️ Robust PostgreSQL Backend
+- Auto-creates the `sales` table on first run — no manual migration
+- Indexes on `date`, `store`, and `platform` for fast queries
+
+---
 
 ## Technology Stack
 
-- Node.js 20.x
-- Express 5
-- PostgreSQL
-- Vanilla JavaScript frontend in `public/app.js`
-- Static frontend served from `public/`
+| Layer | Technology |
+|---|---|
+| Runtime | Node.js 20.x |
+| Framework | Express 5 |
+| Database | PostgreSQL |
+| Frontend | Vanilla JavaScript (no build step) |
+| Styles | Custom CSS |
+
+No heavy frameworks. No complex build pipeline. Just clean, readable code that's easy to deploy and maintain.
+
+---
 
 ## Project Structure
 
-- `server.js` — Express server and PostgreSQL API routes
-- `public/index.html` — frontend HTML shell
-- `public/style.css` — application styles
-- `public/app.js` — frontend logic and export/report generation
-- `.env.example` — sample environment variables
-- `MIGRATION_GUIDE.md` — PostgreSQL migration notes
+```
+afaq-data-analyst-app/
+├── server.js            # Express server + all PostgreSQL API routes
+├── public/
+│   ├── index.html       # Frontend HTML shell
+│   ├── style.css        # Application styles
+│   └── app.js           # Frontend logic, export & report generation
+├── .env.example         # Sample environment variable config
+├── MIGRATION_GUIDE.md   # PostgreSQL migration notes
+└── package.json
+```
+
+---
+
+## API Reference
+
+| Method | Endpoint | Description |
+|---|---|---|
+| `POST` | `/add` | Add a new sales record |
+| `GET` | `/data` | List all records |
+| `PUT` | `/update/:id` | Update an existing record |
+| `DELETE` | `/delete/:id` | Remove a record |
+| `POST` | `/seed` | Generate sample seed data |
+
+---
 
 ## Local Setup
 
-1. Install dependencies:
+### Prerequisites
+- [Node.js 20+](https://nodejs.org/)
+- A running PostgreSQL instance
 
+### Steps
+
+**1. Clone the repository**
+```bash
+git clone https://github.com/your-username/afaq-data-analyst-app.git
+cd afaq-data-analyst-app
+```
+
+**2. Install dependencies**
 ```bash
 npm install
 ```
 
-2. Create a PostgreSQL database and configure environment variables.
-
-3. Copy `.env.example` to `.env` and update values:
-
+**3. Configure environment variables**
 ```bash
-copy .env.example .env
+cp .env.example .env
 ```
+Then open `.env` and fill in your database credentials (see below).
 
-4. Start the app:
-
+**4. Start the app**
 ```bash
 node server.js
 ```
 
-5. Open the app in your browser at:
-
+**5. Open in your browser**
 ```
 http://localhost:3000
 ```
 
-## Environment Variables
-
-Use either `DATABASE_URL` or the individual PostgreSQL settings below:
-
-- `DATABASE_URL`
-- `DB_USER`
-- `DB_PASSWORD`
-- `DB_HOST`
-- `DB_PORT`
-- `DB_NAME`
-- `PORT`
-- `NODE_ENV`
-
-## GitHub Repository Setup
-
-If you want to push this project to GitHub, run:
-
-```bash
-cd "c:\\Users\\VICTUS\\Downloads\\New folder (2)\\afaq-data- analyst-app"
-git init
-git add .
-git commit -m "Initial commit"
-```
-
-Then create a new GitHub repository in your account and add it as a remote, for example:
-
-```bash
-git remote add origin https://github.com/your-username/afaq-data-analyst-app.git
-git branch -M main
-git push -u origin main
-```
-
-> If Git is not installed locally, install it from https://git-scm.com/downloads first.
-
-## Render Deployment (Free)
-
-Render can host this Node.js app with a free tier for web services.
-
-1. Create a GitHub repository and push the project.
-2. Sign in to https://render.com
-3. Click `New +` and choose `Web Service`
-4. Connect your GitHub account and select the repository
-5. Use these settings:
-   - Environment: `Node`
-   - Build Command: `npm install`
-   - Start Command: `node server.js`
-   - Branch: `main`
-6. Add the database connection environment variable:
-   - `DATABASE_URL` = your PostgreSQL connection string
-
-If you need a PostgreSQL database, use Render Postgres or a free PostgreSQL service.
-
-## Alternative Free Hosting
-
-- Railway: free PostgreSQL + Node.js deployment
-- Supabase: PostgreSQL database, then deploy Node.js elsewhere
-- Fly.io: small free tier for Node.js
-
-## API Endpoints
-
-- `POST /add` — add a new sales record
-- `GET /data` — list all records
-- `PUT /update/:id` — update a record
-- `DELETE /delete/:id` — remove a record
-- `POST /seed` — generate sample data
-
-## Notes
-
-- The app auto-creates the `sales` table at startup
-- Indexes are created on `date`, `store`, and `platform`
-- The frontend uses static assets from the `public/` folder
+The app will auto-create the `sales` table on first run. No manual migration needed.
 
 ---
 
-If you want, I can also create a GitHub actions workflow or Render YAML for easier deployment after you push the repo.
+## Environment Variables
+
+Use either a full connection string or individual settings:
+
+```env
+# Option A — connection string
+DATABASE_URL=postgresql://user:password@host:5432/dbname
+
+# Option B — individual settings
+DB_USER=your_db_user
+DB_PASSWORD=your_db_password
+DB_HOST=localhost
+DB_PORT=5432
+DB_NAME=afaq
+
+# App settings
+PORT=3000
+NODE_ENV=production
+```
+
+---
+
+## Deployment
+
+### Deploy to Render (Free Tier)
+
+1. Push this repo to GitHub
+2. Sign in at [render.com](https://render.com)
+3. Click **New +** → **Web Service**
+4. Connect your GitHub account and select this repository
+5. Use these settings:
+
+   | Setting | Value |
+   |---|---|
+   | Environment | `Node` |
+   | Build Command | `npm install` |
+   | Start Command | `node server.js` |
+   | Branch | `main` |
+
+6. Add your `DATABASE_URL` environment variable in the Render dashboard
+
+Need a database? Use **Render Postgres** (free tier available) or any hosted PostgreSQL service.
+
+### Other Free Hosting Options
+
+| Platform | What It Offers |
+|---|---|
+| [Railway](https://railway.app) | Free PostgreSQL + Node.js, one-click deploy |
+| [Supabase](https://supabase.com) | Free managed PostgreSQL |
+| [Fly.io](https://fly.io) | Small free tier for Node.js apps |
+
+---
+
+## Contributing
+
+Contributions, issues, and feature requests are welcome. Feel free to open an issue or submit a pull request.
+
+---
+
+## License
+
+This project is open source. See [LICENSE](LICENSE) for details.
+
+---
+
+<p align="center">Built with ❤️ — أُفق · Afaq</p>
