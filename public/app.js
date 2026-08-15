@@ -1,4 +1,6 @@
 (function () {
+  const currentMarket = window.location.pathname === "/international" ? "international" : "saudi";
+  document.body.dataset.market = currentMarket;
   const langSelect = document.getElementById("lang-select");
   const form = document.getElementById("sales-form");
   const banner = document.getElementById("banner");
@@ -11,6 +13,7 @@
   const recordsHint = document.getElementById("records-hint");
   const exportBtn = document.getElementById("export-btn");
   const seedBtn = document.getElementById("seed-btn");
+  const deleteAllBtn = document.getElementById("delete-all-btn");
   const exportTypeSelect = document.getElementById("export-type");
   const exportStartDateInput = document.getElementById("export-start-date");
   const exportEndDateInput = document.getElementById("export-end-date");
@@ -60,14 +63,15 @@
     "meta syria jc800p": { en: "meta syria jc800p", ar: "ميتا سوريا (jc800p)" },
     "TikTok-projector": { en: "TikTok-projector", ar: "تيك توك - بروجكتور" },
     "snapchat-projector": { en: "snapchat-projector", ar: "سناب شات - بروجكتور" },
+    "Google-projector": { en: "Google-projector", ar: "جوجل بروجيكتور" },
+    "TikTok-tracker": { en: "TikTok tracker", ar: "تيك توك جهاز التتبع" },
     "TikTok-viofo": { en: "TikTok-viofo", ar: "تيك توك - فيوفو" },
     "snapchat-viofo": { en: "snapchat-viofo", ar: "سناب شات - فيوفو" },
   };
 
-  const platformMapByStore = {
+  const saudiPlatformMap = {
     "micro store": [
-      "TikTok-viofo",
-      "snapchat-viofo",
+      "Google-projector",
       "TikTok-projector",
       "snapchat-projector",
       "Google",
@@ -78,23 +82,73 @@
       "karzoun",
     ],
     "birq store": [
-      "google iraq",
       "Google",
       "Google Shopping",
       "TikTok",
       "Snapchat",
       "Meta",
-      "meta iraq k30",
-      "meta iraq jc800p",
-      "meta uae k30",
-      "meta uae jc800p",
-      "meta syria k30",
-      "meta syria jc800p",
       "karzoun",
     ],
     "zmord store": ["TikTok", "Google", "Google Shopping", "Snapchat", "Meta", "karzoun"],
-    "alshahens store": ["TikTok", "Google", "Google Shopping", "Snapchat", "Meta", "meta iraq", "karzoun"],
+    "alshahens store": ["TikTok", "TikTok-tracker", "Google", "Google Shopping", "Snapchat", "Meta", "karzoun"],
   };
+  const internationalPlatformMap = {
+    "birq store": [
+      "Syria-Meta",
+      "Iraq-Meta-S20",
+      "Iraq-Meta-P10",
+      "Iraq-Meta-K30",
+      "Iraq-TikTok-S20",
+      "Iraq-TikTok-P10",
+      "Iraq-TikTok-K30",
+      "Lebanon-Meta-S20",
+      "Lebanon-Meta-P10",
+    ],
+    "alshahens store": [
+      "Qatar-Google", "Qatar-TikTok", "Qatar-Snapchat", "Qatar-Meta",
+      "Kuwait-Google", "Kuwait-TikTok", "Kuwait-TikTok-tracker", "Kuwait-Snapchat", "Kuwait-Meta",
+      "Jordan-Google", "Jordan-TikTok", "Jordan-Snapchat", "Jordan-Meta",
+      "Oman-Google", "Oman-TikTok", "Oman-Snapchat", "Oman-Meta",
+      "Egypt-Google", "Egypt-TikTok", "Egypt-Snapchat", "Egypt-Meta",
+      "Syria-Meta",
+    ],
+  };
+  const platformMapByStore =
+    currentMarket === "international" ? internationalPlatformMap : saudiPlatformMap;
+  const marketStores =
+    currentMarket === "international"
+      ? ["birq store", "alshahens store"]
+      : ["micro store", "zmord store", "birq store", "alshahens store"];
+
+  const countryLabels = {
+    Syria: { en: "Syria", ar: "سوريا" },
+    Iraq: { en: "Iraq", ar: "العراق" },
+    Lebanon: { en: "Lebanon", ar: "لبنان" },
+    Qatar: { en: "Qatar", ar: "قطر" },
+    Kuwait: { en: "Kuwait", ar: "الكويت" },
+    Jordan: { en: "Jordan", ar: "الأردن" },
+    Oman: { en: "Oman", ar: "عمان" },
+    Egypt: { en: "Egypt", ar: "مصر" },
+  };
+
+  function getPlatformLabel(value, lang = currentLang) {
+    if (platformLabels[value]) return platformLabels[value][lang];
+    const parts = String(value).split("-");
+    const country = countryLabels[parts[0]];
+    if (!country) return value;
+    const channelNames = {
+      Meta: { en: "Meta", ar: "ميتا" },
+      TikTok: { en: "TikTok", ar: "تيك توك" },
+      Google: { en: "Google", ar: "جوجل" },
+      Snapchat: { en: "Snapchat", ar: "سناب شات" },
+      tracker: { en: "tracking device", ar: "جهاز التتبع" },
+    };
+    const channel = channelNames[parts[1]] ? channelNames[parts[1]][lang] : parts[1];
+    const detail = parts.slice(2).map((part) =>
+      channelNames[part] ? channelNames[part][lang] : part
+    ).join(" ");
+    return [country[lang], channel, detail].filter(Boolean).join(" - ");
+  }
 
   const defaultPlatformOrder = [
     "Meta",
@@ -141,6 +195,10 @@
       language: "Language",
       title: "Afaq",
       subtitle: "Sales reporting",
+      saudiPage: "Saudi Arabia",
+      internationalPage: "International expansion",
+      saudiSubtitle: "Saudi Arabia sales reporting",
+      internationalSubtitle: "International expansion sales reporting",
       newEntry: "New entry",
       date: "Date",
       store: "Store",
@@ -223,12 +281,21 @@
       seedRunning: "Generating test data...",
       seedSuccess: (n) => `Generated ${n} test records.`,
       seedFailed: "Could not generate test data.",
+      deleteAllBtn: "Delete all history",
+      deleteAllRunning: "Deleting all history...",
+      confirmDeleteAll: "Delete ALL saved history? This cannot be undone.",
+      deleteAllSuccess: "All history was deleted.",
+      deleteAllFailed: "Could not delete all history.",
     },
     ar: {
       pageTitle: "افاق",
       language: "اللغة",
       title: "افاق",
       subtitle: "تقارير المبيعات",
+      saudiPage: "السعودية",
+      internationalPage: "التوسع الدولي",
+      saudiSubtitle: "تقارير مبيعات السعودية",
+      internationalSubtitle: "تقارير التوسع الدولي",
       newEntry: "إدخال جديد",
       date: "التاريخ",
       store: "المتجر",
@@ -311,6 +378,11 @@
       seedRunning: "جاري توليد بيانات الاختبار...",
       seedSuccess: (n) => `تم توليد ${n} سجل اختبار.`,
       seedFailed: "تعذر توليد بيانات الاختبار.",
+      deleteAllBtn: "حذف كل السجل",
+      deleteAllRunning: "جار حذف كل السجل...",
+      confirmDeleteAll: "هل تريد حذف كل السجل المحفوظ؟ لا يمكن التراجع عن هذا الإجراء.",
+      deleteAllSuccess: "تم حذف كل السجل بنجاح.",
+      deleteAllFailed: "تعذر حذف كل السجل.",
     },
   };
 
@@ -332,7 +404,12 @@
     document.title = t("pageTitle");
     setText("lang-label", t("language"));
     setText("title-text", t("title"));
-    setText("subtitle-text", t("subtitle"));
+    setText(
+      "subtitle-text",
+      currentMarket === "international" ? t("internationalSubtitle") : t("saudiSubtitle")
+    );
+    setText("nav-saudi", t("saudiPage"));
+    setText("nav-international", t("internationalPage"));
     setText("new-entry-title", t("newEntry"));
     setText("label-date", t("date"));
     setText("label-store", t("store"));
@@ -383,6 +460,7 @@
     setText("export-day-btn", t("exportSelectedPeriod"));
     setText("load-saved-title", t("loadSavedTitle"));
     setText("seed-btn", t("seedBtn"));
+    setText("delete-all-btn", t("deleteAllBtn"));
     updateChoiceLabels();
     loadRecords();
   }
@@ -414,6 +492,29 @@
     updateCalculations();
   }
 
+  function populateMarketStoreOptions() {
+    const configs = [
+      { select: storeSelect, placeholderId: "select-store-option" },
+      { select: historyStoreSelect, placeholderId: "history-store-placeholder" },
+      { select: exportStoreSelect, placeholderId: "export-store-all-option" },
+    ];
+    configs.forEach(({ select, placeholderId }) => {
+      if (!select) return;
+      const placeholder = select.querySelector('option[value=""]');
+      select.innerHTML = "";
+      if (placeholder) {
+        placeholder.id = placeholderId;
+        select.appendChild(placeholder);
+      }
+      marketStores.forEach((store) => {
+        const option = document.createElement("option");
+        option.value = store;
+        option.textContent = storeLabels[store]?.[currentLang] || store;
+        select.appendChild(option);
+      });
+    });
+  }
+
   function refreshHistoryPlatformOptions() {
     if (!historyPlatformSelect || !historyStoreSelect) return;
     const selectedStore = historyStoreSelect.value;
@@ -428,8 +529,7 @@
     allowedPlatforms.forEach((value) => {
       const option = document.createElement("option");
       option.value = value;
-      option.textContent =
-        (platformLabels[value] && platformLabels[value][currentLang]) || value;
+      option.textContent = getPlatformLabel(value);
       historyPlatformSelect.appendChild(option);
     });
     if (allowedPlatforms.includes(prev)) historyPlatformSelect.value = prev;
@@ -536,8 +636,7 @@
     allowedPlatforms.forEach((value) => {
       const option = document.createElement("option");
       option.value = value;
-      option.textContent =
-        (platformLabels[value] && platformLabels[value][currentLang]) || value;
+      option.textContent = getPlatformLabel(value);
       platformSelect.appendChild(option);
     });
 
@@ -962,6 +1061,7 @@
     }
 
     const payload = {
+      market: currentMarket,
       date,
       store,
       platform: platform || "",
@@ -1042,7 +1142,7 @@
     recordsWrap.hidden = true;
 
     try {
-      const res = await fetch("/data");
+      const res = await fetch(`/data?market=${currentMarket}`);
       if (!res.ok) throw new Error("bad status");
       const rows = await res.json();
       cachedAllRows = rows;
@@ -1069,7 +1169,7 @@
           "</td><td>" +
           escapeHtml((storeLabels[r.store] && storeLabels[r.store][currentLang]) || r.store) +
           "</td><td>" +
-          escapeHtml((platformLabels[r.platform] && platformLabels[r.platform][currentLang]) || r.platform) +
+          escapeHtml(getPlatformLabel(r.platform)) +
           "</td><td>" +
           escapeHtml(String(r.ads_count)) +
           "</td><td>" +
@@ -1163,32 +1263,31 @@
   function getWeekRange(dateStr) {
     const date = parseYMDLocal(dateStr);
     if (!date) return null;
-    
-    // JavaScript: 0=Sun, 1=Mon, ..., 6=Sat
+
+    // Afaq reporting week: Thursday through Wednesday.
+    // JavaScript: 0=Sun, 1=Mon, ..., 4=Thu, ..., 6=Sat.
     const day = date.getDay();
-    // Days since Monday (Sunday=6, Mon=0, Tue=1, ...)
-    const daysFromMonday = day === 0 ? 6 : day - 1;
-    
-    const monday = new Date(date);
-    monday.setDate(monday.getDate() - daysFromMonday);
-    const sunday = new Date(monday);
-    sunday.setDate(monday.getDate() + 6);
-    
+    const daysFromThursday = (day - 4 + 7) % 7;
+    const thursday = new Date(date);
+    thursday.setDate(thursday.getDate() - daysFromThursday);
+    const wednesday = new Date(thursday);
+    wednesday.setDate(thursday.getDate() + 6);
+
     return {
-      start: formatYMDLocal(monday),
-      end: formatYMDLocal(sunday)
+      start: formatYMDLocal(thursday),
+      end: formatYMDLocal(wednesday)
     };
   }
 
-  // Get comparison range (previous Mon-Sun week)
+  // Previous Thursday-Wednesday reporting week.
   function getPreviousWeekRange(dateStr) {
     const range = getWeekRange(dateStr);
     if (!range) return null;
-    const monday = parseYMDLocal(range.start);
-    const prevWeekEnd = new Date(monday);
-    prevWeekEnd.setDate(prevWeekEnd.getDate() - 1); // Sunday of previous week
+    const thursday = parseYMDLocal(range.start);
+    const prevWeekEnd = new Date(thursday);
+    prevWeekEnd.setDate(prevWeekEnd.getDate() - 1);
     const prevWeekStart = new Date(prevWeekEnd);
-    prevWeekStart.setDate(prevWeekStart.getDate() - 6); // Monday of previous week
+    prevWeekStart.setDate(prevWeekStart.getDate() - 6);
     return {
       start: formatYMDLocal(prevWeekStart),
       end: formatYMDLocal(prevWeekEnd)
@@ -1206,7 +1305,7 @@
     return `- ${label} :${format(current)}${arrow} ${format(previous)}`;
   }
 
-  const reportStores = ["micro store", "birq store", "alshahens store", "zmord store"];
+  const reportStores = marketStores;
 
   const reportStoreNames = {
     "micro store": "مايكرو",
@@ -1218,10 +1317,12 @@
   const reportPlatformNames = {
     "TikTok-projector": "تيك توك",
     "snapchat-projector": "سناب شات",
+    "Google-projector": "جوجل",
+    "TikTok-tracker": "تيك توك جهاز التتبع",
     "TikTok-viofo": "تيك توك",
     "snapchat-viofo": "سناب شات",
     "google iraq": "جوجل (العراق)",
-    "meta iraq": "انستا (العراق)",
+    "meta iraq": "ميتا (العراق)",
     "meta iraq k30": "ميتا العراق (k30)",
     "meta iraq jc800p": "ميتا العراق (jc800p)",
     "meta uae k30": "ميتا الامارات (k30)",
@@ -1232,49 +1333,72 @@
     Google: "جوجل",
     TikTok: "تيك توك",
     Snapchat: "سناب شات",
-    Meta: "انستا",
+    Meta: "ميتا",
     karzoun: "كرزون",
   };
 
-  const reportPlatformGroups = {
+  const saudiReportPlatformGroups = {
     "micro store": [
-      { title: "بروجيكتور", platforms: ["TikTok-projector", "snapchat-projector"] },
-      { title: "فيوفو", platforms: ["TikTok-viofo", "snapchat-viofo"] },
-      { platforms: ["Google", "Google Shopping", "TikTok", "Snapchat", "Meta", "karzoun"] },
+      { title: "بروجيكتور", platforms: ["Google-projector", "TikTok-projector", "snapchat-projector"] },
+      { title: "داشكام", platforms: ["Google", "Google Shopping", "TikTok", "Snapchat", "Meta", "karzoun"] },
     ],
     "birq store": [
       {
         platforms: [
-          "google iraq",
           "Google Shopping",
           "Google",
           "TikTok",
           "Snapchat",
           "Meta",
-          "meta iraq k30",
-          "meta iraq jc800p",
-          "meta uae k30",
-          "meta uae jc800p",
-          "meta syria k30",
-          "meta syria jc800p",
           "karzoun",
         ],
       },
     ],
     "alshahens store": [
-      { platforms: ["Google", "Google Shopping", "TikTok", "Snapchat", "Meta", "meta iraq", "karzoun"] },
+      { platforms: ["Google", "Google Shopping", "TikTok", "TikTok-tracker", "Snapchat", "Meta", "karzoun"] },
     ],
     "zmord store": [
       { platforms: ["Google", "Google Shopping", "TikTok", "Snapchat", "Meta", "karzoun"] },
     ],
   };
+  const internationalReportPlatformGroups = {
+    "birq store": [
+      { title: "سوريا", platforms: ["Syria-Meta"] },
+      {
+        title: "العراق",
+        platforms: [
+          "Iraq-Meta-S20", "Iraq-Meta-P10", "Iraq-Meta-K30",
+          "Iraq-TikTok-S20", "Iraq-TikTok-P10", "Iraq-TikTok-K30",
+        ],
+      },
+      { title: "لبنان", platforms: ["Lebanon-Meta-S20", "Lebanon-Meta-P10"] },
+    ],
+    "alshahens store": [
+      { title: "قطر", platforms: ["Qatar-Google", "Qatar-TikTok", "Qatar-Snapchat", "Qatar-Meta"] },
+      {
+        title: "الكويت",
+        platforms: [
+          "Kuwait-Google", "Kuwait-TikTok", "Kuwait-TikTok-tracker",
+          "Kuwait-Snapchat", "Kuwait-Meta",
+        ],
+      },
+      { title: "الأردن", platforms: ["Jordan-Google", "Jordan-TikTok", "Jordan-Snapchat", "Jordan-Meta"] },
+      { title: "عمان", platforms: ["Oman-Google", "Oman-TikTok", "Oman-Snapchat", "Oman-Meta"] },
+      { title: "مصر", platforms: ["Egypt-Google", "Egypt-TikTok", "Egypt-Snapchat", "Egypt-Meta"] },
+      { title: "سوريا", platforms: ["Syria-Meta"] },
+    ],
+  };
+  const reportPlatformGroups =
+    currentMarket === "international"
+      ? internationalReportPlatformGroups
+      : saudiReportPlatformGroups;
 
   function reportStoreName(store) {
     return reportStoreNames[store] || ((storeLabels[store] && storeLabels[store].ar) || store);
   }
 
   function reportPlatformName(platform) {
-    return reportPlatformNames[platform] || ((platformLabels[platform] && platformLabels[platform].ar) || platform);
+    return reportPlatformNames[platform] || getPlatformLabel(platform, "ar");
   }
 
   function reportPlatformHeading(platform) {
@@ -1392,6 +1516,7 @@
       تيكتوك: "tiktok",
       سنابشات: "snapchat",
       انستا: "instagram",
+      ميتا: "instagram",
       يوتيوب: "youtube",
     };
 
@@ -1409,14 +1534,27 @@
       if (label.includes("اجماليالمبيعات")) totalCol = col;
     });
 
+    const summaryRow = [...lines].reverse().find((row) => {
+      if (String(row[0] || "").trim()) return false;
+      return row.slice(1).some((cell) =>
+        Number.isFinite(Number(String(cell || "").replace(",", ".")))
+      );
+    });
+
     labelRow.forEach((label, col) => {
       const key = labelMap[label];
       const section = sectionForColumn(col);
       if (!key || !section) return;
-      let total = 0;
-      for (let rowIdx = 2; rowIdx < lines.length; rowIdx += 1) {
-        const value = Number(String(lines[rowIdx][col] || "").replace(",", "."));
-        if (Number.isFinite(value)) total += value;
+      const summaryValue = summaryRow
+        ? Number(String(summaryRow[col] || "").replace(",", "."))
+        : NaN;
+      let total = Number.isFinite(summaryValue) ? summaryValue : 0;
+      if (!Number.isFinite(summaryValue)) {
+        for (let rowIdx = 2; rowIdx < lines.length; rowIdx += 1) {
+          if (lines[rowIdx] === summaryRow) continue;
+          const value = Number(String(lines[rowIdx][col] || "").replace(",", "."));
+          if (Number.isFinite(value)) total += value;
+        }
       }
       if (section === "wa") waTotals[key] += total;
       if (section === "site") siteTotals[key] += total;
@@ -1427,7 +1565,7 @@
     let replied = 0;
     let noReply = 0;
     let grandTotal = 0;
-    const lastDataRow = lines[lines.length - 1] || [];
+    const lastDataRow = summaryRow || lines[lines.length - 1] || [];
     if (repliedCol >= 0) replied = Number(String(lastDataRow[repliedCol] || "").replace(",", ".")) || 0;
     if (noReplyCol >= 0) noReply = Number(String(lastDataRow[noReplyCol] || "").replace(",", ".")) || 0;
     if (totalCol >= 0) grandTotal = Number(String(lastDataRow[totalCol] || "").replace(",", ".")) || 0;
@@ -1479,7 +1617,7 @@
       `- توصيه ${reportNumber(wa.referral, 0)}`,
       `- تيك توك ${reportNumber(wa.tiktok, 0)}`,
       `- سناب ${reportNumber(wa.snapchat, 0)}`,
-      `- انستا : ${reportNumber(wa.instagram, 0)}`,
+      `- ميتا : ${reportNumber(wa.instagram, 0)}`,
       `- يوتيوب : ${reportNumber(wa.youtube, 0)}`,
       "",
       "•مبيعات الموقع•",
@@ -1488,7 +1626,7 @@
       `- توصيه ${reportNumber(site.referral, 0)}`,
       `- تيك توك ${reportNumber(site.tiktok, 0)}`,
       `- سناب ${reportNumber(site.snapchat, 0)}`,
-      `- انستا ${reportNumber(site.instagram, 0)}`,
+      `- ميتا ${reportNumber(site.instagram, 0)}`,
       `- يوتيوب ${reportNumber(site.youtube, 0)}`,
       "",
       `-رد: ${reportNumber(stats.replied || stats.totalWhatsapp + stats.totalWebsite, 0)}`,
@@ -1504,6 +1642,10 @@
 
   function storeReportGroups(store) {
     return reportPlatformGroups[store] || [{ platforms: platformMapByStore[store] || [] }];
+  }
+
+  function reportGroupHeading(title) {
+    return "\u25aa\ufe0e" + title + "\u25aa\ufe0e";
   }
 
   
@@ -1532,10 +1674,18 @@ function buildWeeklyReport(allRows, selectedStore, periodValue, options = {}) {
     stores.forEach((store, storeIdx) => {
       const storeName = reportStoreName(store);
       lines.push("\u25a0\u062a\u0642\u0631\u064a\u0631 \u0627\u0633\u0628\u0648\u0639\u064a \u0644\u0645\u062a\u062c\u0631 (" + storeName + ")");
-      lines.push(reportDateShort(weekRange.start));
+      lines.push(reportDateShort(weekRange.start) + " - " + reportDateShort(weekRange.end));
       lines.push("\u25a1\u062a\u0642\u0631\u064a\u0631 \u0627\u0644\u0627\u0639\u0644\u0627\u0646\u0627\u062a");
 
       storeReportGroups(store).forEach((group) => {
+        const groupHasRows = group.platforms.some((platform) =>
+          rowsForRange(allRows, store, platform, prevWeekRange.start, weekRange.end).length
+        );
+        if (!groupHasRows) return;
+        if (group.title) {
+          lines.push("");
+          lines.push(reportGroupHeading(group.title));
+        }
         group.platforms.forEach((platform) => {
           const currentRows = rowsForRange(allRows, store, platform, weekRange.start, weekRange.end);
           const prevRows = rowsForRange(allRows, store, platform, prevWeekRange.start, prevWeekRange.end);
@@ -1621,7 +1771,7 @@ function buildDailyReport(allRows, selectedStore, dateStr) {
         const groupHasRows = group.platforms.some((platform) => storeRows.some((r) => r.platform === platform));
         if (!groupHasRows) return;
         if (group.title) {
-          lines.push(group.title);
+          lines.push(reportGroupHeading(group.title));
           lines.push("");
         }
 
@@ -1668,6 +1818,84 @@ function buildDailyReport(allRows, selectedStore, dateStr) {
     return lines.join("\n").trim() + "\n";
   }
 
+  function buildDailySummaryReport(allRows, selectedStore, startDate, endDate) {
+    const stores = selectedReportStores(selectedStore);
+    const lines = [];
+
+    lines.push(
+      "\u25cf\u062a\u0642\u0631\u064a\u0631 \u0645\u0644\u062e\u0635 \u0627\u0644\u0625\u0639\u0644\u0627\u0646\u0627\u062a \u0644\u0644\u0641\u062a\u0631\u0629 \u0645\u0646 " +
+      reportDateShort(startDate) +
+      " \u0625\u0644\u0649 " +
+      reportDateShort(endDate) +
+      "\u25cf"
+    );
+
+    stores.forEach((store, storeIdx) => {
+      const storeRows = allRows.filter(
+        (row) => row.store === store && row.date >= startDate && row.date <= endDate
+      );
+      if (!storeRows.length) return;
+
+      const storeName = reportStoreName(store);
+      lines.push("");
+      lines.push("\u25cf\u0645\u062a\u062c\u0631 " + storeName);
+      lines.push("");
+
+      storeReportGroups(store).forEach((group) => {
+        const groupHasRows = group.platforms.some((platform) =>
+          storeRows.some((row) => row.platform === platform)
+        );
+        if (!groupHasRows) return;
+
+        if (group.title) {
+          lines.push(reportGroupHeading(group.title));
+          lines.push("");
+        }
+
+        group.platforms.forEach((platform) => {
+          const rows = storeRows.filter((row) => row.platform === platform);
+          if (!rows.length) return;
+
+          const stats = reportStats(rows);
+          const label = platform === "karzoun" ? "\u0643\u0631\u0632\u0648\u0646" : reportPlatformName(platform);
+          lines.push("- " + label);
+
+          if (platform !== "karzoun") {
+            lines.push("- \u0625\u062c\u0645\u0627\u0644\u064a \u0639\u062f\u062f \u0627\u0644\u0625\u0639\u0644\u0627\u0646\u0627\u062a: " + reportNumber(stats.ads, 0));
+          }
+
+          lines.push("- \u0625\u062c\u0645\u0627\u0644\u064a \u0639\u062f\u062f \u0627\u0644\u0645\u0628\u064a\u0639\u0627\u062a: " + reportNumber(stats.purchaseCount, 0));
+          lines.push("- \u0625\u062c\u0645\u0627\u0644\u064a \u0642\u064a\u0645\u0629 \u0627\u0644\u0645\u0628\u064a\u0639\u0627\u062a: " + reportNumber(stats.value));
+          lines.push("- \u062a\u0643\u0644\u0641\u0629 \u0627\u0644\u0645\u0628\u064a\u0639: " + reportNumber(stats.cpp));
+          lines.push("- \u0627\u0644\u062a\u0643\u0644\u0641\u0629 \u0627\u0644\u0643\u0644\u064a\u0629: " + reportNumber(stats.cost));
+
+          if (stats.clicks > 0 || isWhatsappClicksPlatform(platform)) {
+            lines.push("- \u0625\u062c\u0645\u0627\u0644\u064a \u0646\u0642\u0631\u0627\u062a \u0627\u0644\u0648\u0627\u062a\u0633: " + reportNumber(stats.clicks, 0));
+          }
+
+          lines.push("- \u0645\u0639\u062f\u0644 \u0627\u0644\u0645\u0628\u064a\u0639: " + reportNumber(stats.roas));
+          lines.push("");
+        });
+      });
+
+      const summary = reportStats(storeRows);
+      lines.push("\u25cf\u0645\u0644\u062e\u0635 \u0645\u062a\u062c\u0631 " + storeName + "\u25cf");
+      lines.push("- \u0625\u062c\u0645\u0627\u0644\u064a \u0639\u062f\u062f \u0627\u0644\u0625\u0639\u0644\u0627\u0646\u0627\u062a: " + reportNumber(summary.ads, 0));
+      lines.push("- \u0625\u062c\u0645\u0627\u0644\u064a \u0639\u062f\u062f \u0627\u0644\u0645\u0628\u064a\u0639\u0627\u062a: " + reportNumber(summary.purchaseCount, 0));
+      lines.push("- \u0625\u062c\u0645\u0627\u0644\u064a \u0642\u064a\u0645\u0629 \u0627\u0644\u0645\u0628\u064a\u0639\u0627\u062a: " + reportNumber(summary.value));
+      lines.push("- \u0625\u062c\u0645\u0627\u0644\u064a \u0627\u0644\u062a\u0643\u0644\u0641\u0629: " + reportNumber(summary.cost));
+      lines.push("- \u0645\u062a\u0648\u0633\u0637 \u062a\u0643\u0644\u0641\u0629 \u0627\u0644\u0634\u0631\u0627\u0621: " + reportNumber(summary.cpp));
+      lines.push("- \u0645\u0639\u062f\u0644 \u0627\u0644\u0645\u0628\u064a\u0639: " + reportNumber(summary.roas));
+
+      if (storeIdx < stores.length - 1) {
+        lines.push("");
+        lines.push("----------------------");
+      }
+    });
+
+    return lines.join("\n").trim() + "\n";
+  }
+
   
   function buildMonthlyReport(allRows, selectedStore, monthValue, options = {}) {
     const stores = selectedReportStores(selectedStore);
@@ -1688,6 +1916,14 @@ function buildDailyReport(allRows, selectedStore, dateStr) {
       lines.push("");
 
       storeReportGroups(store).forEach((group) => {
+        const groupHasRows = group.platforms.some((platform) =>
+          storeRows.some((row) => row.platform === platform)
+        );
+        if (!groupHasRows) return;
+        if (group.title) {
+          lines.push(reportGroupHeading(group.title));
+          lines.push("");
+        }
         group.platforms.forEach((platform) => {
           const rows = storeRows.filter((r) => r.platform === platform);
           if (!rows.length) return;
@@ -1717,7 +1953,7 @@ function buildDailyReport(allRows, selectedStore, dateStr) {
       const contentCost = optionNumber(options, "contentCost", sum(contentRows, "content_cost"));
       const contentCount = optionNumber(options, "contentCount", contentRows.length);
       const seoPurchases = optionNumber(options, "seoPurchases", 0);
-      const seoCost = seoPurchases > 0 ? 2060 : 0;
+      const seoCost = optionNumber(options, "seoCost", 0);
       const seoCpp = seoPurchases > 0 ? seoCost / seoPurchases : 0;
       const pasteStats = parseMonthlyPasteStats(options.pasteText || "");
       const socialNoReply = monthlySocialNoReply(store, pasteStats);
@@ -1736,10 +1972,11 @@ function buildDailyReport(allRows, selectedStore, dateStr) {
       lines.push("\u25cb\u0627\u062c\u0645\u0627\u0644\u0649 \u0627\u0644\u0645\u0628\u064a\u0639\u0627\u062a : " + reportNumber(summary.purchaseCount, 0) + " + " + reportNumber(socialNoReply, 0) + "=" + reportNumber(totalWithNoReply, 0));
       lines.push("\u25cb\u0627\u062c\u0645\u0627\u0644\u064a \u0627\u0644\u0633\u0648\u0634\u064a\u0627\u0644 \u0645\u064a\u062f\u064a\u0627(\u0644\u0645 \u064a\u0631\u062f) " + reportNumber(monthlyNoReplyRates[store] || 50, 0) + "%=" + reportNumber(socialNoReply, 0));
 
-      if (pasteStats.raw) {
+      const salesBlock = monthlySalesBlock(store, pasteStats);
+      if (salesBlock) {
         lines.push("");
         lines.push("\u25cf\u25cf\u25cf\u25cf\u25cf\u25cf\u25cf\u25cf\u25cf\u25cf\u25cf\u25cf\u25cf\u25cf\u25cf\u25cf\u25cf");
-        lines.push(pasteStats.raw);
+        lines.push(salesBlock);
       }
 
       if (storeIdx < stores.length - 1) {
@@ -1799,9 +2036,9 @@ function buildDailyReport(allRows, selectedStore, dateStr) {
 
   function buildExportContent(type, allRows, selectedStore, startDate, endDate, supplement = {}) {
     if (type === "daily") {
-      return dateRangeDays(startDate, endDate)
-        .map((dateStr) => buildDailyReport(allRows, selectedStore, dateStr).trim())
-        .join("\n\n==============================\n\n") + "\n";
+      return isSameDateRange(startDate, endDate)
+        ? buildDailyReport(allRows, selectedStore, startDate)
+        : buildDailySummaryReport(allRows, selectedStore, startDate, endDate);
     }
 
     if (type === "weekly") {
@@ -1838,7 +2075,7 @@ function buildDailyReport(allRows, selectedStore, dateStr) {
     if (supplementSubtitle) {
       supplementSubtitle.textContent = isWeekly
         ? "Fill content cost and no-reply sales before exporting."
-        : "Fill content cost, SEO purchases, and paste the monthly Excel range.";
+        : "Fill content cost, SEO cost and purchases, then paste the monthly Excel range.";
     }
     if (supplementPasteBlock) supplementPasteBlock.hidden = !isMonthly;
     Array.from(document.querySelectorAll(".supplement-weekly-field")).forEach((el) => {
@@ -1852,6 +2089,7 @@ function buildDailyReport(allRows, selectedStore, dateStr) {
     setText("supplement-unanswered-label", "عدد مبيعات لم يرد");
     setText("supplement-prev-unanswered-label", "عدد مبيعات لم يرد للأسبوع السابق");
     setText("supplement-seo-purchases-label", "مبيعات SEO");
+    setText("supplement-seo-cost-label", "تكلفة SEO");
     setText("supplement-paste-label", "Excel paste");
     if (supplementPreview) {
       supplementPreview.textContent = isMonthly
@@ -1868,6 +2106,7 @@ function buildDailyReport(allRows, selectedStore, dateStr) {
       previousUnansweredPurchases:
         type === "weekly" ? parseSupplementNumber("supplement-prev-unanswered") : 0,
       seoPurchases: type === "monthly" ? parseSupplementNumber("supplement-seo-purchases") : 0,
+      seoCost: type === "monthly" ? parseSupplementNumber("supplement-seo-cost") : 0,
       pasteText: type === "monthly" && supplementPaste ? supplementPaste.value : "",
     };
   }
@@ -1907,7 +2146,7 @@ function buildDailyReport(allRows, selectedStore, dateStr) {
 
   async function runExportForPeriod(type, startDate, endDate, supplement) {
     const selectedStore = exportStoreSelect ? exportStoreSelect.value : "";
-    const res = await fetch("/data");
+    const res = await fetch(`/data?market=${currentMarket}`);
     if (!res.ok) throw new Error("bad status");
     const rowData = await res.json();
     const range = normalizeExportRange(startDate, endDate);
@@ -1990,12 +2229,40 @@ function buildDailyReport(allRows, selectedStore, dateStr) {
     exportEndDateInput.value = "";
   }
 
+  if (deleteAllBtn) {
+    deleteAllBtn.addEventListener("click", async () => {
+      if (!window.confirm(t("confirmDeleteAll"))) return;
+
+      deleteAllBtn.disabled = true;
+      deleteAllBtn.textContent = t("deleteAllRunning");
+      try {
+        const res = await fetch(`/delete-all?market=${currentMarket}`, { method: "DELETE" });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || "delete all failed");
+        editingRecordId = null;
+        form.reset();
+        showBanner(t("deleteAllSuccess"), "success");
+        await loadRecords();
+      } catch {
+        showBanner(t("deleteAllFailed"), "error");
+      } finally {
+        deleteAllBtn.disabled = false;
+        deleteAllBtn.textContent = t("deleteAllBtn");
+        hideBannerSoon();
+      }
+    });
+  }
+
   if (seedBtn) {
     seedBtn.addEventListener("click", async () => {
       seedBtn.disabled = true;
       seedBtn.textContent = t("seedRunning");
       try {
-        const res = await fetch("/seed", { method: "POST" });
+        const res = await fetch("/seed", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ market: currentMarket }),
+        });
         const data = await res.json().catch(() => ({}));
         if (!res.ok) throw new Error(data.error || "seed failed");
         showBanner(t("seedSuccess")(data.recordsCreated || 0), "success");
@@ -2028,5 +2295,6 @@ function buildDailyReport(allRows, selectedStore, dateStr) {
     });
   }
 
+  populateMarketStoreOptions();
   setLanguage(currentLang);
 })();

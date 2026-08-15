@@ -1,49 +1,39 @@
 const express = require("express");
 const cors = require("cors");
 const path = require("path");
-const { Pool } = require("pg");
+const fs = require("fs");
+const Database = require("better-sqlite3");
 
 const PORT = process.env.PORT || 3000;
 
-// Initialize PostgreSQL connection pool
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  // For local development without DATABASE_URL:
-  ...(process.env.DATABASE_URL
-    ? {}
-    : {
-        user: process.env.DB_USER || "postgres",
-        password: process.env.DB_PASSWORD || "postgres",
-        host: process.env.DB_HOST || "localhost",
-        port: process.env.DB_PORT || 5432,
-        database: process.env.DB_NAME || "afaq_analytics",
-      }),
-  // Enable SSL for production (Railway requires it)
-  ssl: process.env.DATABASE_URL ? { rejectUnauthorized: false } : false,
-});
-
-// Error handler for pool
-pool.on("error", (err) => {
-  console.error("Unexpected error on idle client", err);
-});
+const dataDirectory = path.resolve(__dirname, process.env.DATA_DIR || "data");
+fs.mkdirSync(dataDirectory, { recursive: true });
+const databasePath = path.join(dataDirectory, "afaq.sqlite");
+const db = new Database(databasePath);
+db.pragma("journal_mode = WAL");
+db.pragma("foreign_keys = ON");
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
+app.get(["/saudi", "/international"], (_req, res) => {
+  res.sendFile(path.join(__dirname, "public", "index.html"));
+});
 
 // ============================================================================
 // DATABASE INITIALIZATION
 // ============================================================================
 
-async function initializeDatabase() {
+function initializeDatabase() {
   try {
     console.log("Initializing database...");
 
-    await pool.query(`
+    db.exec(`
       CREATE TABLE IF NOT EXISTS sales (
-        id SERIAL PRIMARY KEY,
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        market TEXT NOT NULL DEFAULT 'saudi',
         date TEXT NOT NULL,
         store TEXT NOT NULL,
         platform TEXT NOT NULL,
@@ -58,23 +48,19 @@ async function initializeDatabase() {
         purchase_values_json TEXT NOT NULL DEFAULT '[]',
         whatsapp_clicks INTEGER NOT NULL DEFAULT 0,
         content_cost REAL NOT NULL DEFAULT 0,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      )
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP
+      );
+      CREATE INDEX IF NOT EXISTS idx_sales_date ON sales(date);
+      CREATE INDEX IF NOT EXISTS idx_sales_store ON sales(store);
+      CREATE INDEX IF NOT EXISTS idx_sales_platform ON sales(platform);
+      CREATE INDEX IF NOT EXISTS idx_sales_date_store ON sales(date, store);
     `);
 
-    // Create indexes for common queries
-    await pool.query(`
-      CREATE INDEX IF NOT EXISTS idx_sales_date ON sales(date)
-    `);
-    await pool.query(`
-      CREATE INDEX IF NOT EXISTS idx_sales_store ON sales(store)
-    `);
-    await pool.query(`
-      CREATE INDEX IF NOT EXISTS idx_sales_platform ON sales(platform)
-    `);
-    await pool.query(`
-      CREATE INDEX IF NOT EXISTS idx_sales_date_store ON sales(date, store)
-    `);
+    const columns = db.prepare("PRAGMA table_info(sales)").all();
+    if (!columns.some((column) => column.name === "market")) {
+      db.exec("ALTER TABLE sales ADD COLUMN market TEXT NOT NULL DEFAULT 'saudi'");
+    }
+    db.exec("CREATE INDEX IF NOT EXISTS idx_sales_market_date ON sales(market, date)");
 
     console.log("✓ Database tables initialized successfully");
     return true;
@@ -95,6 +81,7 @@ app.post("/add", async (req, res) => {
   try {
     const {
       date,
+      market,
       store,
       platform,
       ads_count,
@@ -139,14 +126,14 @@ app.post("/add", async (req, res) => {
     // Insert into database
     const query = `
       INSERT INTO sales (
-        date, store, platform, ads_count, platform_sales, whatsapp_sales,
+        market, date, store, platform, ads_count, platform_sales, whatsapp_sales,
         unknown_sales, ad_spend, cost, content_cost, purchase_count, purchase_value,
         purchase_values_json, whatsapp_clicks, created_at
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, CURRENT_TIMESTAMP)
-      RETURNING id
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
     `;
 
     const params = [
+      market === "international" ? "international" : "saudi",
       String(date),
       String(store),
       String(platform ?? ""),
@@ -163,8 +150,8 @@ app.post("/add", async (req, res) => {
       Number(whatsapp_clicks) || 0,
     ];
 
-    const result = await pool.query(query, params);
-    const id = result.rows[0].id;
+    const result = db.prepare(query).run(...params);
+    const id = Number(result.lastInsertRowid);
 
     res.status(201).json({ id, ok: true });
   } catch (error) {
@@ -178,13 +165,15 @@ app.post("/add", async (req, res) => {
  */
 app.get("/data", async (req, res) => {
   try {
+    const market = req.query.market === "international" ? "international" : "saudi";
     const query = `
       SELECT * FROM sales
+      WHERE market = ?
       ORDER BY date DESC, id DESC
     `;
 
-    const result = await pool.query(query);
-    res.json(result.rows);
+    const rows = db.prepare(query).all(market);
+    res.json(rows);
   } catch (error) {
     console.error("Error retrieving data:", error);
     res.status(500).json({ error: "Failed to read data." });
@@ -247,12 +236,11 @@ app.put("/update/:id", async (req, res) => {
     // Update record
     const query = `
       UPDATE sales SET
-        date = $1, store = $2, platform = $3, ads_count = $4, platform_sales = $5,
-        whatsapp_sales = $6, unknown_sales = $7, ad_spend = $8, cost = $9,
-        content_cost = $10, purchase_count = $11, purchase_value = $12,
-        purchase_values_json = $13, whatsapp_clicks = $14
-      WHERE id = $15
-      RETURNING id
+        date = ?, store = ?, platform = ?, ads_count = ?, platform_sales = ?,
+        whatsapp_sales = ?, unknown_sales = ?, ad_spend = ?, cost = ?,
+        content_cost = ?, purchase_count = ?, purchase_value = ?,
+        purchase_values_json = ?, whatsapp_clicks = ?
+      WHERE id = ?
     `;
 
     const params = [
@@ -273,9 +261,9 @@ app.put("/update/:id", async (req, res) => {
       id,
     ];
 
-    const result = await pool.query(query, params);
+    const result = db.prepare(query).run(...params);
 
-    if (result.rows.length === 0) {
+    if (result.changes === 0) {
       return res.status(404).json({ error: "Record not found." });
     }
 
@@ -283,6 +271,20 @@ app.put("/update/:id", async (req, res) => {
   } catch (error) {
     console.error("Error updating record:", error);
     res.status(500).json({ error: "Failed to update record." });
+  }
+});
+
+/**
+ * DELETE /delete-all - Delete all saved sales history
+ */
+app.delete("/delete-all", (req, res) => {
+  try {
+    const market = req.query.market === "international" ? "international" : "saudi";
+    const result = db.prepare("DELETE FROM sales WHERE market = ?").run(market);
+    res.json({ ok: true, deletedCount: result.changes });
+  } catch (error) {
+    console.error("Error deleting all records:", error);
+    res.status(500).json({ error: "Failed to delete all records." });
   }
 });
 
@@ -296,10 +298,10 @@ app.delete("/delete/:id", async (req, res) => {
       return res.status(400).json({ error: "Invalid record id." });
     }
 
-    const query = "DELETE FROM sales WHERE id = $1 RETURNING id";
-    const result = await pool.query(query, [id]);
+    const query = "DELETE FROM sales WHERE id = ?";
+    const result = db.prepare(query).run(id);
 
-    if (result.rows.length === 0) {
+    if (result.changes === 0) {
       return res.status(404).json({ error: "Record not found." });
     }
 
@@ -317,10 +319,10 @@ app.post("/seed", async (req, res) => {
   try {
     console.log("Generating sample data...");
 
-    const platformMapByStore = {
+    const market = req.body.market === "international" ? "international" : "saudi";
+    const saudiPlatformMap = {
       "micro store": [
-        "TikTok-viofo",
-        "snapchat-viofo",
+        "Google-projector",
         "TikTok-projector",
         "snapchat-projector",
         "Google",
@@ -331,20 +333,41 @@ app.post("/seed", async (req, res) => {
         "karzoun",
       ],
       "birq store": [
-        "google iraq",
         "Google",
         "Google Shopping",
         "TikTok",
         "Snapchat",
         "Meta",
         "karzoun",
-        "meta iraq",
       ],
       "zmord store": ["TikTok", "Google", "Google Shopping", "Snapchat", "Meta", "karzoun"],
-      "alshahens store": ["TikTok", "Google", "Google Shopping", "Snapchat", "Meta", "karzoun"],
+      "alshahens store": ["TikTok", "TikTok-tracker", "Google", "Google Shopping", "Snapchat", "Meta", "karzoun"],
     };
 
-    const stores = ["micro store", "birq store", "alshahens store", "zmord store"];
+    const internationalPlatformMap = {
+      "birq store": [
+        "Syria-Meta",
+        "Iraq-Meta-S20",
+        "Iraq-Meta-P10",
+        "Iraq-Meta-K30",
+        "Iraq-TikTok-S20",
+        "Iraq-TikTok-P10",
+        "Iraq-TikTok-K30",
+        "Lebanon-Meta-S20",
+        "Lebanon-Meta-P10",
+      ],
+      "alshahens store": [
+        "Qatar-Google", "Qatar-TikTok", "Qatar-Snapchat", "Qatar-Meta",
+        "Kuwait-Google", "Kuwait-TikTok", "Kuwait-TikTok-tracker", "Kuwait-Snapchat", "Kuwait-Meta",
+        "Jordan-Google", "Jordan-TikTok", "Jordan-Snapchat", "Jordan-Meta",
+        "Oman-Google", "Oman-TikTok", "Oman-Snapchat", "Oman-Meta",
+        "Egypt-Google", "Egypt-TikTok", "Egypt-Snapchat", "Egypt-Meta",
+        "Syria-Meta",
+      ],
+    };
+    const platformMapByStore =
+      market === "international" ? internationalPlatformMap : saudiPlatformMap;
+    const stores = Object.keys(platformMapByStore);
 
     function randomInt(min, max) {
       return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -382,13 +405,14 @@ app.post("/seed", async (req, res) => {
 
           const query = `
             INSERT INTO sales (
-              date, store, platform, ads_count, platform_sales, whatsapp_sales,
+              market, date, store, platform, ads_count, platform_sales, whatsapp_sales,
               unknown_sales, ad_spend, cost, content_cost, purchase_count, purchase_value,
               purchase_values_json, whatsapp_clicks, created_at
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, CURRENT_TIMESTAMP)
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
           `;
 
           const params = [
+            market,
             dateStr,
             store,
             platform,
@@ -405,7 +429,7 @@ app.post("/seed", async (req, res) => {
             randomInt(0, isGoogle ? 45 : 18),
           ];
 
-          await pool.query(query, params);
+          db.prepare(query).run(...params);
           recordsCreated++;
         }
       }
@@ -423,20 +447,20 @@ app.post("/seed", async (req, res) => {
 // SERVER STARTUP
 // ============================================================================
 
-async function startServer() {
+function startServer() {
   try {
     // Test database connection
-    await pool.query("SELECT NOW()");
-    console.log("✓ Connected to PostgreSQL database");
+    db.prepare("SELECT CURRENT_TIMESTAMP").get();
+    console.log("✓ Connected to local SQLite database");
 
     // Initialize database schema
-    await initializeDatabase();
+    initializeDatabase();
 
     // Start Express server
     app.listen(PORT, () => {
       console.log(`✓ Sales Reporting System running at http://localhost:${PORT}`);
       console.log(`  Environment: ${process.env.NODE_ENV || "development"}`);
-      console.log(`  Database: ${process.env.DATABASE_URL ? "PostgreSQL (Railway)" : "PostgreSQL (Local)"}`);
+      console.log(`  Database: SQLite (${databasePath})`);
     });
   } catch (error) {
     console.error("✗ Failed to start server:", error);
@@ -445,9 +469,9 @@ async function startServer() {
 }
 
 // Handle graceful shutdown
-process.on("SIGINT", async () => {
+process.on("SIGINT", () => {
   console.log("\nShutting down gracefully...");
-  await pool.end();
+  db.close();
   process.exit(0);
 });
 
