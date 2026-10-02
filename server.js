@@ -324,6 +324,7 @@ app.post("/seed", async (req, res) => {
       "micro store": [
         "Google-projector",
         "TikTok-projector",
+        "TikTok-locks",
         "snapchat-projector",
         "Google",
         "Google Shopping",

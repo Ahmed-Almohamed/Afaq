@@ -62,6 +62,7 @@
     "meta syria k30": { en: "meta syria k30", ar: "ميتا سوريا (k30)" },
     "meta syria jc800p": { en: "meta syria jc800p", ar: "ميتا سوريا (jc800p)" },
     "TikTok-projector": { en: "TikTok-projector", ar: "تيك توك - بروجكتور" },
+    "TikTok-locks": { en: "TikTok - Locks", ar: "تيك توك - أقفال" },
     "snapchat-projector": { en: "snapchat-projector", ar: "سناب شات - بروجكتور" },
     "Google-projector": { en: "Google-projector", ar: "جوجل بروجيكتور" },
     "TikTok-tracker": { en: "TikTok tracker", ar: "تيك توك جهاز التتبع" },
@@ -73,6 +74,7 @@
     "micro store": [
       "Google-projector",
       "TikTok-projector",
+      "TikTok-locks",
       "snapchat-projector",
       "Google",
       "Google Shopping",
@@ -1316,6 +1318,7 @@
 
   const reportPlatformNames = {
     "TikTok-projector": "تيك توك",
+    "TikTok-locks": "تيك توك - أقفال",
     "snapchat-projector": "سناب شات",
     "Google-projector": "جوجل",
     "TikTok-tracker": "تيك توك جهاز التتبع",
@@ -1340,6 +1343,7 @@
   const saudiReportPlatformGroups = {
     "micro store": [
       { title: "بروجيكتور", platforms: ["Google-projector", "TikTok-projector", "snapchat-projector"] },
+      { title: "أقفال", platforms: ["TikTok-locks"] },
       { title: "داشكام", platforms: ["Google", "Google Shopping", "TikTok", "Snapchat", "Meta", "karzoun"] },
     ],
     "birq store": [
