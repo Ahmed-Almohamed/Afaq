@@ -161,6 +161,11 @@
               />
             </div>
 
+            <div class="field" id="cpc-field" hidden>
+              <label for="cpc" id="label-cpc">Cost per click</label>
+              <input type="number" id="cpc" name="cpc" min="0" step="any" inputmode="decimal" />
+            </div>
+
             <div class="field">
               <label for="purchase_count" id="label-purchase-count">Total purchases</label>
               <input
@@ -245,8 +250,6 @@
             </select>
           </div>
           <button type="button" class="submit-btn export-btn" id="export-btn">Export report</button>
-          <button type="button" class="submit-btn seed-btn" id="seed-btn">Generate 30-day test data</button>
-          <button type="button" class="submit-btn delete-all-btn" id="delete-all-btn">Delete all history</button>
           <div class="export-by-day" id="export-by-day-wrap" hidden>
             <label class="export-by-day-label" for="export-day-select" id="export-by-day-label"
               >Export by day</label
@@ -282,6 +285,16 @@
               <tbody id="records-body"></tbody>
             </table>
           </div>
+          <details class="maintenance-tools">
+            <summary id="maintenance-title">Data management</summary>
+            <p class="maintenance-hint" id="maintenance-hint">
+              Open only when you need to generate test data or delete history.
+            </p>
+            <div class="maintenance-actions">
+              <button type="button" class="submit-btn seed-btn" id="seed-btn">Generate 30-day test data</button>
+              <button type="button" class="submit-btn delete-all-btn" id="delete-all-btn">Delete all history</button>
+            </div>
+          </details>
         </section>
       </main>
 

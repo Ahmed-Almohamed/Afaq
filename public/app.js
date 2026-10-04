@@ -24,6 +24,8 @@
   const historyLoadBtn = document.getElementById("history-load-btn");
   const storeSelect = document.getElementById("store");
   const platformSelect = document.getElementById("platform");
+  const cpcField = document.getElementById("cpc-field");
+  const cpcInput = document.getElementById("cpc");
   const purchaseValuesContainer = document.getElementById("purchase-values-container");
   const supplementModal = document.getElementById("supplement-modal");
   const supplementTitle = document.getElementById("supplement-title");
@@ -65,7 +67,12 @@
     "TikTok-locks": { en: "TikTok - Locks", ar: "تيك توك - أقفال" },
     "snapchat-projector": { en: "snapchat-projector", ar: "سناب شات - بروجكتور" },
     "Google-projector": { en: "Google-projector", ar: "جوجل بروجيكتور" },
+    "Meta-projector": { en: "Meta projector", ar: "ميتا بروجيكتور" },
     "TikTok-tracker": { en: "TikTok tracker", ar: "تيك توك جهاز التتبع" },
+    "Snapchat-tracker": { en: "Snapchat tracker", ar: "سناب شات جهاز التتبع" },
+    "Google-tracker": { en: "Google tracker", ar: "جوجل جهاز التتبع" },
+    "TikTok-sonar-device": { en: "TikTok sonar device", ar: "تيك توك جهاز السونار" },
+    "Syria-Meta": { en: "Syria Meta", ar: "سوريا ميتا" },
     "TikTok-viofo": { en: "TikTok-viofo", ar: "تيك توك - فيوفو" },
     "snapchat-viofo": { en: "snapchat-viofo", ar: "سناب شات - فيوفو" },
   };
@@ -76,6 +83,7 @@
       "TikTok-projector",
       "TikTok-locks",
       "snapchat-projector",
+      "Meta-projector",
       "Google",
       "Google Shopping",
       "TikTok",
@@ -92,19 +100,29 @@
       "karzoun",
     ],
     "zmord store": ["TikTok", "Google", "Google Shopping", "Snapchat", "Meta", "karzoun"],
-    "alshahens store": ["TikTok", "TikTok-tracker", "Google", "Google Shopping", "Snapchat", "Meta", "karzoun"],
+    "alshahens store": ["Gulf-Google", "TikTok", "TikTok-tracker", "Snapchat-tracker", "Google", "Google-tracker", "Google Shopping", "Snapchat", "Meta", "karzoun"],
   };
   const internationalPlatformMap = {
     "birq store": [
-      "Syria-Meta",
+      "Syria-Meta-S20",
+      "Syria-Meta-P10",
       "Iraq-Meta-S20",
       "Iraq-Meta-P10",
       "Iraq-Meta-K30",
+      "Iraq-Meta-JC800P",
       "Iraq-TikTok-S20",
       "Iraq-TikTok-P10",
       "Iraq-TikTok-K30",
       "Lebanon-Meta-S20",
       "Lebanon-Meta-P10",
+      "UAE-Snapchat-S20",
+      "UAE-Snapchat-P10",
+      "UAE-Snapchat-dashcam",
+      "UAE-Google",
+      "Qatar-Google",
+      "Qatar-Snapchat-dashcam",
+      "Kuwait-Google",
+      "Gulf-Google",
     ],
     "alshahens store": [
       "Qatar-Google", "Qatar-TikTok", "Qatar-Snapchat", "Qatar-Meta",
@@ -112,7 +130,11 @@
       "Jordan-Google", "Jordan-TikTok", "Jordan-Snapchat", "Jordan-Meta",
       "Oman-Google", "Oman-TikTok", "Oman-Snapchat", "Oman-Meta",
       "Egypt-Google", "Egypt-TikTok", "Egypt-Snapchat", "Egypt-Meta",
-      "Syria-Meta",
+      "UAE-TikTok",
+      "Syria-Meta", "Syria-Meta-P10",
+      "Yemen-Meta",
+      "USA-Meta",
+      "TikTok-sonar-device",
     ],
   };
   const platformMapByStore =
@@ -131,6 +153,10 @@
     Jordan: { en: "Jordan", ar: "الأردن" },
     Oman: { en: "Oman", ar: "عمان" },
     Egypt: { en: "Egypt", ar: "مصر" },
+    Yemen: { en: "Yemen", ar: "اليمن" },
+    UAE: { en: "UAE", ar: "الإمارات" },
+    USA: { en: "USA", ar: "أمريكا" },
+    Gulf: { en: "Gulf", ar: "الخليج" },
   };
 
   function getPlatformLabel(value, lang = currentLang) {
@@ -144,6 +170,7 @@
       Google: { en: "Google", ar: "جوجل" },
       Snapchat: { en: "Snapchat", ar: "سناب شات" },
       tracker: { en: "tracking device", ar: "جهاز التتبع" },
+      dashcam: { en: "dashcam", ar: "داشكام" },
     };
     const channel = channelNames[parts[1]] ? channelNames[parts[1]][lang] : parts[1];
     const detail = parts.slice(2).map((part) =>
@@ -184,6 +211,7 @@
       "cost",
       "content_cost",
       "whatsapp_clicks",
+      "cpc",
     ];
     ids.forEach((id) => {
       const el = document.getElementById(id);
@@ -213,7 +241,9 @@
       unknownSales: "Unknown purchases",
       cost: "Cost",
       contentCost: "Content production cost",
-      purchaseCount: "Total purchases (auto)",
+      cpc: "Cost per click",
+      purchaseCount: "Counted purchases (value ≥ 400)",
+      purchaseCountInternational: "Total purchases (auto)",
       purchaseValue: "Purchase values",
       purchaseValueItem: "Purchase value",
       whatsappClicks: "WhatsApp clicks",
@@ -247,6 +277,7 @@
       thRatioDays: "Value/cost streak",
       thRoas: "ROAS",
       thAction: "Action",
+      edit: "Edit",
       delete: "Delete",
       deleting: "Deleting...",
       deletedSuccess: "Record deleted successfully.",
@@ -280,6 +311,7 @@
       updateEntry: "Update entry",
       updatedSuccess: "Record updated.",
       seedBtn: "Generate 30-day test data",
+      confirmSeed: "Generate random test records for 30 days? This will add many records to the current history.",
       seedRunning: "Generating test data...",
       seedSuccess: (n) => `Generated ${n} test records.`,
       seedFailed: "Could not generate test data.",
@@ -288,6 +320,8 @@
       confirmDeleteAll: "Delete ALL saved history? This cannot be undone.",
       deleteAllSuccess: "All history was deleted.",
       deleteAllFailed: "Could not delete all history.",
+      maintenanceTitle: "Data management",
+      maintenanceHint: "Open only when you need to generate test data or delete history.",
     },
     ar: {
       pageTitle: "افاق",
@@ -310,7 +344,9 @@
       unknownSales: "مشتريات غير معروفة",
       cost: "التكلفة",
       contentCost: "تكلفة صناعة المحتوى",
-      purchaseCount: "إجمالي المشتريات (تلقائي)",
+      cpc: "تكلفة النقرة",
+      purchaseCount: "المبيعات المحتسبة (قيمة 400 فأكثر)",
+      purchaseCountInternational: "إجمالي المبيعات (تلقائي)",
       purchaseValue: "قيم المبيع",
       purchaseValueItem: "قيمة المبيع",
       whatsappClicks: "نقرات واتساب",
@@ -344,6 +380,7 @@
       thRatioDays: "تسلسل قيمة/تكلفة",
       thRoas: "معدل البيع",
       thAction: "إجراء",
+      edit: "تعديل",
       delete: "حذف",
       deleting: "جار الحذف...",
       deletedSuccess: "تم حذف السجل بنجاح.",
@@ -377,6 +414,7 @@
       updateEntry: "تحديث الإدخال",
       updatedSuccess: "تم تحديث السجل.",
       seedBtn: "توليد بيانات اختبار 30 يوم",
+      confirmSeed: "هل تريد توليد سجلات عشوائية لمدة 30 يوم؟ ستتم إضافة عدد كبير من السجلات إلى السجل الحالي.",
       seedRunning: "جاري توليد بيانات الاختبار...",
       seedSuccess: (n) => `تم توليد ${n} سجل اختبار.`,
       seedFailed: "تعذر توليد بيانات الاختبار.",
@@ -385,6 +423,8 @@
       confirmDeleteAll: "هل تريد حذف كل السجل المحفوظ؟ لا يمكن التراجع عن هذا الإجراء.",
       deleteAllSuccess: "تم حذف كل السجل بنجاح.",
       deleteAllFailed: "تعذر حذف كل السجل.",
+      maintenanceTitle: "إدارة البيانات الخطرة",
+      maintenanceHint: "افتح هذا القسم فقط عند الحاجة لتوليد بيانات اختبار أو حذف السجل.",
     },
   };
 
@@ -424,7 +464,11 @@
     setText("label-unknown-sales", t("unknownSales"));
     setText("label-cost", t("cost"));
     setText("label-content-cost", t("contentCost"));
-    setText("label-purchase-count", t("purchaseCount"));
+    setText("label-cpc", t("cpc"));
+    setText(
+      "label-purchase-count",
+      currentMarket === "international" ? t("purchaseCountInternational") : t("purchaseCount")
+    );
     setText("label-purchase-value", t("purchaseValue"));
     setText("label-whatsapp-clicks", t("whatsappClicks"));
     setText("label-total-sales", t("totalSales"));
@@ -463,6 +507,8 @@
     setText("load-saved-title", t("loadSavedTitle"));
     setText("seed-btn", t("seedBtn"));
     setText("delete-all-btn", t("deleteAllBtn"));
+    setText("maintenance-title", t("maintenanceTitle"));
+    setText("maintenance-hint", t("maintenanceHint"));
     updateChoiceLabels();
     loadRecords();
   }
@@ -594,7 +640,9 @@
     setField("unknown_sales", row.unknown_sales);
     setField("cost", row.cost);
     setField("content_cost", row.content_cost);
+    setField("cpc", row.cpc);
     setField("whatsapp_clicks", row.whatsapp_clicks);
+    refreshCpcField();
     lastRenderedPurchaseCount = -1;
     updateCalculations();
     let vals = parsePurchaseValuesFromRow(row);
@@ -645,6 +693,17 @@
     if (allowedPlatforms.includes(prev)) {
       platformSelect.value = prev;
     }
+    refreshCpcField();
+  }
+
+  function isGooglePlatform(platform) {
+    return String(platform || "").toLowerCase().includes("google");
+  }
+
+  function refreshCpcField() {
+    const google = isGooglePlatform(platformSelect?.value);
+    if (cpcField) cpcField.hidden = !google;
+    if (cpcInput) cpcInput.disabled = !google;
   }
 
   const numericIds = [
@@ -663,7 +722,7 @@
     return Number.isFinite(v) ? v : 0;
   }
 
-  function getComputedPurchaseCount() {
+  function getEnteredPurchaseCount() {
     return (
       Math.max(0, Math.round(parseNum("platform_sales"))) +
       Math.max(0, Math.round(parseNum("whatsapp_sales"))) +
@@ -671,20 +730,38 @@
     );
   }
 
+  function getCountedPurchaseCount() {
+    if (currentMarket === "international") return getEnteredPurchaseCount();
+    return collectPurchaseValuesArray().filter((value) => value >= 400).length;
+  }
+
+  function getRowCountedPurchaseCount(row) {
+    if (row && row.counted_purchase_count != null) {
+      return Math.max(0, Number(row.counted_purchase_count) || 0);
+    }
+    const savedValues = parsePurchaseValuesFromRow(row);
+    if (currentMarket === "saudi" && savedValues.length) {
+      return savedValues.filter((value) => value >= 400).length;
+    }
+    const legacyCount = Number(row?.platform_sales || 0) + Number(row?.whatsapp_sales || 0);
+    return legacyCount || Math.max(0, Number(row?.purchase_count || 0));
+  }
+
   function syncPurchaseCountField() {
     const el = document.getElementById("purchase_count");
     if (!el) return;
-    const n = getComputedPurchaseCount();
+    const n = getCountedPurchaseCount();
     el.value = n > 0 ? String(n) : "";
   }
 
   function updateCalculations() {
     syncPurchaseCountField();
-    const purchaseCount = getComputedPurchaseCount();
-    if (purchaseCount !== lastRenderedPurchaseCount) {
-      lastRenderedPurchaseCount = purchaseCount;
+    const enteredPurchaseCount = getEnteredPurchaseCount();
+    if (enteredPurchaseCount !== lastRenderedPurchaseCount) {
+      lastRenderedPurchaseCount = enteredPurchaseCount;
       renderPurchaseValueInputs();
     }
+    const purchaseCount = getCountedPurchaseCount();
 
     const platformSales = parseNum("platform_sales");
     const whatsappSales = parseNum("whatsapp_sales");
@@ -692,8 +769,18 @@
     const cost = parseNum("cost");
     const purchaseValueTotal = getPurchaseValuesTotal();
 
-    const total = platformSales + whatsappSales + unknownSales;
-    totalSalesEl.textContent = String(Math.round(total));
+    totalSalesEl.textContent = String(purchaseCount);
+
+    if (purchaseValuesContainer) {
+      purchaseValuesContainer.querySelectorAll(".purchase-value-input").forEach((input) => {
+        const value = parseFloat(String(input.value).replace(",", "."));
+        const excluded = currentMarket === "saudi" && Number.isFinite(value) && value > 0 && value < 400;
+        input.classList.toggle("purchase-value-excluded", excluded);
+        input.title = excluded
+          ? (currentLang === "ar" ? "تدخل بالقيمة والمعدل ولا تدخل بعدد المبيعات" : "Included in value and ROAS, excluded from sales count")
+          : "";
+      });
+    }
 
     const ratio = getValueCostRatio(purchaseValueTotal, cost);
     const dateStr = document.getElementById("date") ? String(document.getElementById("date").value).trim() : "";
@@ -762,6 +849,43 @@
     const fromJson = parsePurchaseValuesFromRow(row);
     if (fromJson.length) return fromJson.reduce((a, b) => a + b, 0);
     return Number(row.purchase_value || 0);
+  }
+
+  function getRowCountedSalesBreakdown(row) {
+    const raw = {
+      platformSales: Math.max(0, Number(row?.platform_sales || 0)),
+      whatsappSales: Math.max(0, Number(row?.whatsapp_sales || 0)),
+      unknownSales: Math.max(0, Number(row?.unknown_sales || 0)),
+    };
+    if (currentMarket === "international") return raw;
+
+    const values = parsePurchaseValuesFromRow(row);
+    const enteredCount = raw.platformSales + raw.whatsappSales + raw.unknownSales;
+    if (values.length >= enteredCount && enteredCount > 0) {
+      let offset = 0;
+      const countedInNext = (count) => {
+        const result = values.slice(offset, offset + count).filter((value) => value >= 400).length;
+        offset += count;
+        return result;
+      };
+      return {
+        platformSales: countedInNext(raw.platformSales),
+        whatsappSales: countedInNext(raw.whatsappSales),
+        unknownSales: countedInNext(raw.unknownSales),
+      };
+    }
+
+    let remaining = getRowCountedPurchaseCount(row);
+    const take = (count) => {
+      const result = Math.min(count, Math.max(0, remaining));
+      remaining -= result;
+      return result;
+    };
+    return {
+      platformSales: take(raw.platformSales),
+      whatsappSales: take(raw.whatsappSales),
+      unknownSales: take(raw.unknownSales),
+    };
   }
 
   function getValueCostRatio(purchaseValueTotal, cost) {
@@ -949,7 +1073,9 @@
 
   function renderPurchaseValueInputs() {
     if (!purchaseValuesContainer) return;
-    const count = Math.max(0, Math.min(50, getComputedPurchaseCount()));
+    const count = Math.max(0, Math.min(50, getEnteredPurchaseCount()));
+    const platformCount = Math.max(0, Math.round(parseNum("platform_sales")));
+    const whatsappCount = Math.max(0, Math.round(parseNum("whatsapp_sales")));
     const prevValues = Array.from(
       purchaseValuesContainer.querySelectorAll(".purchase-value-input")
     ).map((el) => el.value);
@@ -962,7 +1088,16 @@
       input.step = "0.01";
       input.inputMode = "decimal";
       input.className = "purchase-value-input";
-      input.placeholder = `${t("purchaseValueItem")} #${i + 1}`;
+      let sourceLabel = t("unknownSales");
+      let sourceIndex = i - platformCount - whatsappCount + 1;
+      if (i < platformCount) {
+        sourceLabel = t("platformSales");
+        sourceIndex = i + 1;
+      } else if (i < platformCount + whatsappCount) {
+        sourceLabel = t("whatsappSales");
+        sourceIndex = i - platformCount + 1;
+      }
+      input.placeholder = `${t("purchaseValueItem")} - ${sourceLabel} #${sourceIndex}`;
       input.value = prevValues[i] || "";
       input.addEventListener("input", updateCalculations);
       purchaseValuesContainer.appendChild(input);
@@ -999,7 +1134,10 @@
   }
 
   if (platformSelect) {
-    platformSelect.addEventListener("change", updateCalculations);
+    platformSelect.addEventListener("change", () => {
+      refreshCpcField();
+      updateCalculations();
+    });
   }
 
   const dateInputForCalc = document.getElementById("date");
@@ -1073,7 +1211,9 @@
       unknown_sales: Math.round(parseNum("unknown_sales")),
       cost: parseNum("cost"),
       content_cost: parseNum("content_cost"),
-      purchase_count: getComputedPurchaseCount(),
+      cpc: isGooglePlatform(platform) && cpcInput?.value !== "" ? parseNum("cpc") : null,
+      purchase_count: getEnteredPurchaseCount(),
+      counted_purchase_count: getCountedPurchaseCount(),
       purchase_value: getPurchaseValuesTotal(),
       purchase_values: collectPurchaseValuesArray(),
       whatsapp_clicks: Math.round(parseNum("whatsapp_clicks")),
@@ -1122,6 +1262,7 @@
       if (storeSelect) storeSelect.value = savedStore;
       refreshPlatformOptions();
       if (platformSelect) platformSelect.value = nextPlatform;
+      refreshCpcField();
       lastRenderedPurchaseCount = -1;
       editingRecordId = null;
       refreshSubmitLabel();
@@ -1164,6 +1305,7 @@
 
       for (const r of rows) {
         const streakDisp = getStreakDisplay(rowDateIndex, r.store, r.platform, r.date, {});
+        const countedBreakdown = getRowCountedSalesBreakdown(r);
         const tr = document.createElement("tr");
         tr.innerHTML =
           "<td>" +
@@ -1175,21 +1317,21 @@
           "</td><td>" +
           escapeHtml(String(r.ads_count)) +
           "</td><td>" +
-          escapeHtml(String(r.platform_sales)) +
+          escapeHtml(String(countedBreakdown.platformSales)) +
           "</td><td>" +
-          escapeHtml(String(r.whatsapp_sales)) +
+          escapeHtml(String(countedBreakdown.whatsappSales)) +
           "</td><td>" +
-          escapeHtml(String(r.unknown_sales)) +
+          escapeHtml(String(countedBreakdown.unknownSales)) +
           "</td><td>" +
           formatMoney(r.cost) +
           "</td><td>" +
-          escapeHtml(String(r.purchase_count || 0)) +
+          escapeHtml(String(getRowCountedPurchaseCount(r))) +
           "</td><td>" +
           formatMoney(r.purchase_value) +
           "</td><td>" +
           escapeHtml(
-            Number(r.purchase_count || 0) > 0
-              ? (Number(r.cost || 0) / Number(r.purchase_count || 0)).toFixed(2)
+            getRowCountedPurchaseCount(r) > 0
+              ? (Number(r.cost || 0) / getRowCountedPurchaseCount(r)).toFixed(2)
               : "—"
           ) +
           "</td><td>" +
@@ -1202,15 +1344,36 @@
             const c = Number(r.cost || 0);
             return c > 0 ? (pv / c).toFixed(2) : "—";
           })() +
-          "</td><td>" +
+          "</td><td><div class=\"row-actions\">" +
+          "<button class=\"row-edit-btn\" data-id=\"" +
+          escapeHtml(String(r.id)) +
+          "\">" +
+          escapeHtml(t("edit")) +
+          "</button>" +
           "<button class=\"row-delete-btn\" data-id=\"" +
           escapeHtml(String(r.id)) +
           "\">" +
           escapeHtml(t("delete")) +
           "</button>" +
-          "</td>";
+          "</div></td>";
         recordsBody.appendChild(tr);
       }
+
+      Array.from(recordsBody.querySelectorAll(".row-edit-btn")).forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const id = Number(btn.getAttribute("data-id"));
+          const row = cachedAllRows.find((item) => Number(item.id) === id);
+          if (!row) {
+            showBanner(t("couldNotLoad"), "error");
+            return;
+          }
+          applyRowToForm(row);
+          showBanner(t("loadedForEdit"), "success");
+          hideBannerSoon();
+          const entryCard = form ? form.closest(".card") : null;
+          (entryCard || form)?.scrollIntoView({ behavior: "smooth", block: "start" });
+        });
+      });
 
       Array.from(recordsBody.querySelectorAll(".row-delete-btn")).forEach((btn) => {
         btn.addEventListener("click", async () => {
@@ -1321,7 +1484,11 @@
     "TikTok-locks": "تيك توك - أقفال",
     "snapchat-projector": "سناب شات",
     "Google-projector": "جوجل",
+    "Meta-projector": "ميتا",
     "TikTok-tracker": "تيك توك جهاز التتبع",
+    "Snapchat-tracker": "سناب شات جهاز التتبع",
+    "Google-tracker": "جوجل جهاز التتبع",
+    "TikTok-sonar-device": "تيك توك جهاز السونار",
     "TikTok-viofo": "تيك توك",
     "snapchat-viofo": "سناب شات",
     "google iraq": "جوجل (العراق)",
@@ -1342,7 +1509,7 @@
 
   const saudiReportPlatformGroups = {
     "micro store": [
-      { title: "بروجيكتور", platforms: ["Google-projector", "TikTok-projector", "snapchat-projector"] },
+      { title: "بروجيكتور", platforms: ["Google-projector", "TikTok-projector", "snapchat-projector", "Meta-projector"] },
       { title: "أقفال", platforms: ["TikTok-locks"] },
       { title: "داشكام", platforms: ["Google", "Google Shopping", "TikTok", "Snapchat", "Meta", "karzoun"] },
     ],
@@ -1359,7 +1526,8 @@
       },
     ],
     "alshahens store": [
-      { platforms: ["Google", "Google Shopping", "TikTok", "TikTok-tracker", "Snapchat", "Meta", "karzoun"] },
+      { title: "الخليج", platforms: ["Gulf-Google"] },
+      { platforms: ["Google", "Google-tracker", "Google Shopping", "TikTok", "TikTok-tracker", "Snapchat-tracker", "Snapchat", "Meta", "karzoun"] },
     ],
     "zmord store": [
       { platforms: ["Google", "Google Shopping", "TikTok", "Snapchat", "Meta", "karzoun"] },
@@ -1367,15 +1535,19 @@
   };
   const internationalReportPlatformGroups = {
     "birq store": [
-      { title: "سوريا", platforms: ["Syria-Meta"] },
+      { title: "سوريا", platforms: ["Syria-Meta-S20", "Syria-Meta-P10"] },
       {
         title: "العراق",
         platforms: [
-          "Iraq-Meta-S20", "Iraq-Meta-P10", "Iraq-Meta-K30",
+          "Iraq-Meta-S20", "Iraq-Meta-P10", "Iraq-Meta-K30", "Iraq-Meta-JC800P",
           "Iraq-TikTok-S20", "Iraq-TikTok-P10", "Iraq-TikTok-K30",
         ],
       },
       { title: "لبنان", platforms: ["Lebanon-Meta-S20", "Lebanon-Meta-P10"] },
+      { title: "الإمارات", platforms: ["UAE-Snapchat-S20", "UAE-Snapchat-P10", "UAE-Snapchat-dashcam", "UAE-Google"] },
+      { title: "قطر", platforms: ["Qatar-Google", "Qatar-Snapchat-dashcam"] },
+      { title: "الكويت", platforms: ["Kuwait-Google"] },
+      { title: "الخليج", platforms: ["Gulf-Google"] },
     ],
     "alshahens store": [
       { title: "قطر", platforms: ["Qatar-Google", "Qatar-TikTok", "Qatar-Snapchat", "Qatar-Meta"] },
@@ -1389,7 +1561,11 @@
       { title: "الأردن", platforms: ["Jordan-Google", "Jordan-TikTok", "Jordan-Snapchat", "Jordan-Meta"] },
       { title: "عمان", platforms: ["Oman-Google", "Oman-TikTok", "Oman-Snapchat", "Oman-Meta"] },
       { title: "مصر", platforms: ["Egypt-Google", "Egypt-TikTok", "Egypt-Snapchat", "Egypt-Meta"] },
-      { title: "سوريا", platforms: ["Syria-Meta"] },
+      { title: "الإمارات", platforms: ["UAE-TikTok"] },
+      { title: "سوريا", platforms: ["Syria-Meta", "Syria-Meta-P10"] },
+      { title: "اليمن", platforms: ["Yemen-Meta"] },
+      { title: "أمريكا", platforms: ["USA-Meta"] },
+      { platforms: ["TikTok-sonar-device"] },
     ],
   };
   const reportPlatformGroups =
@@ -1438,17 +1614,44 @@
   function reportStats(rows) {
     const cost = sum(rows, "cost");
     const ads = sum(rows, "ads_count");
-    const platformSales = sum(rows, "platform_sales");
-    const whatsappSales = sum(rows, "whatsapp_sales");
-    const unknownSales = sum(rows, "unknown_sales");
-    const count = platformSales + whatsappSales;
-    const savedCount = sum(rows, "purchase_count");
-    const purchaseCount = count || savedCount;
+    const salesBreakdown = rows.reduce((total, row) => {
+      const counted = getRowCountedSalesBreakdown(row);
+      total.platformSales += counted.platformSales;
+      total.whatsappSales += counted.whatsappSales;
+      total.unknownSales += counted.unknownSales;
+      return total;
+    }, { platformSales: 0, whatsappSales: 0, unknownSales: 0 });
+    const platformSales = salesBreakdown.platformSales;
+    const whatsappSales = salesBreakdown.whatsappSales;
+    const unknownSales = salesBreakdown.unknownSales;
+    const purchaseCount = platformSales + whatsappSales + unknownSales;
     const clicks = sum(rows, "whatsapp_clicks");
     const value = rows.reduce((acc, row) => acc + getRowPurchaseValueTotal(row), 0);
     const cpp = purchaseCount > 0 ? cost / purchaseCount : cost;
     const roas = cost > 0 ? value / cost : 0;
     return { cost, ads, platformSales, whatsappSales, unknownSales, purchaseCount, clicks, value, cpp, roas };
+  }
+
+  function averageCpcByDay(rows) {
+    const days = new Map();
+    rows.forEach((row) => {
+      if (!isGooglePlatform(row.platform) || row.cpc == null || row.cpc === "") return;
+      const value = Number(row.cpc);
+      if (!Number.isFinite(value) || value < 0) return;
+      const day = days.get(row.date) || { sum: 0, count: 0 };
+      day.sum += value;
+      day.count += 1;
+      days.set(row.date, day);
+    });
+    if (!days.size) return null;
+    return [...days.values()].reduce((sum, day) => sum + day.sum / day.count, 0) / days.size;
+  }
+
+  function cpcReportLine(rows, platform, daily = false) {
+    if (!isGooglePlatform(platform)) return null;
+    const cpc = averageCpcByDay(rows);
+    return "- " + (daily ? "تكلفة النقرة" : "متوسط تكلفة النقرة") + ": " +
+      (cpc == null ? "—" : reportNumber(cpc));
   }
 
   function compareText(current, previous, decimals = 2) {
@@ -1700,12 +1903,21 @@ function buildWeeklyReport(allRows, selectedStore, periodValue, options = {}) {
           lines.push("");
           lines.push("\u25cb" + reportPlatformHeading(platform));
           lines.push("- \u0627\u0644\u062a\u0643\u0644\u0641\u0629 \u0627\u0644\u0643\u0644\u064a\u0629 :" + compareText(current.cost, previous.cost));
+          if (isGooglePlatform(platform)) {
+            const currentCpc = averageCpcByDay(currentRows);
+            const previousCpc = averageCpcByDay(prevRows);
+            lines.push("- متوسط تكلفة النقرة: " + (currentCpc == null ? "—" :
+              previousCpc == null ? reportNumber(currentCpc) : compareText(currentCpc, previousCpc)));
+          }
           lines.push("- \u062a\u0643\u0644\u0641\u0629 \u0627\u0644\u0645\u0628\u064a\u0639 :" + compareText(current.cpp, previous.cpp));
           lines.push("- \u0639\u062f\u062f \u0627\u0644\u0645\u0628\u064a\u0639\u0627\u062a :" + compareText(current.purchaseCount, previous.purchaseCount, 0));
 
           if (platform !== "karzoun") {
             lines.push("- \u0645\u0646\u0635\u0629: " + compareText(current.platformSales, previous.platformSales, 0));
             lines.push("- \u0648\u0627\u062a\u0633:" + compareText(current.whatsappSales, previous.whatsappSales, 0));
+            if (current.unknownSales > 0 || previous.unknownSales > 0) {
+              lines.push("- \u063a\u064a\u0631 \u0645\u0639\u0631\u0648\u0641:" + compareText(current.unknownSales, previous.unknownSales, 0));
+            }
           }
 
           if (current.clicks > 0 || previous.clicks > 0 || isWhatsappClicksPlatform(platform)) {
@@ -1795,6 +2007,8 @@ function buildDailyReport(allRows, selectedStore, dateStr) {
           lines.push("- \u0639\u062f\u062f \u0627\u0644\u0645\u0628\u064a\u0639\u0627\u062a: " + reportNumber(stats.purchaseCount, 0));
           lines.push("- \u062a\u0643\u0644\u0641\u0629 \u0627\u0644\u0645\u0628\u064a\u0639: " + reportNumber(stats.cpp));
           lines.push("- \u0627\u0644\u062a\u0643\u0644\u0641\u0629 \u0627\u0644\u0643\u0644\u064a\u0629: " + reportNumber(stats.cost));
+          const cpcLine = cpcReportLine(rows, platform, true);
+          if (cpcLine) lines.push(cpcLine);
 
           if (stats.clicks > 0 || isWhatsappClicksPlatform(platform)) {
             lines.push("- \u0646\u0642\u0631\u0627\u062a \u0627\u0644\u0648\u0627\u062a\u0633: " + reportNumber(stats.clicks, 0));
@@ -1870,6 +2084,8 @@ function buildDailyReport(allRows, selectedStore, dateStr) {
 
           lines.push("- \u0625\u062c\u0645\u0627\u0644\u064a \u0639\u062f\u062f \u0627\u0644\u0645\u0628\u064a\u0639\u0627\u062a: " + reportNumber(stats.purchaseCount, 0));
           lines.push("- \u0625\u062c\u0645\u0627\u0644\u064a \u0642\u064a\u0645\u0629 \u0627\u0644\u0645\u0628\u064a\u0639\u0627\u062a: " + reportNumber(stats.value));
+          const cpcLine = cpcReportLine(rows, platform);
+          if (cpcLine) lines.push(cpcLine);
           lines.push("- \u062a\u0643\u0644\u0641\u0629 \u0627\u0644\u0645\u0628\u064a\u0639: " + reportNumber(stats.cpp));
           lines.push("- \u0627\u0644\u062a\u0643\u0644\u0641\u0629 \u0627\u0644\u0643\u0644\u064a\u0629: " + reportNumber(stats.cost));
 
@@ -1935,12 +2151,17 @@ function buildDailyReport(allRows, selectedStore, dateStr) {
           const stats = reportStats(rows);
           lines.push("\u25cb" + reportPlatformHeading(platform));
           lines.push("- \u0627\u0644\u062a\u0643\u0644\u0641\u0629 \u0627\u0644\u0643\u0644\u064a\u0629: " + reportNumber(stats.cost));
+          const cpcLine = cpcReportLine(rows, platform);
+          if (cpcLine) lines.push(cpcLine);
           lines.push("- \u062a\u0643\u0644\u0641\u0629 \u0627\u0644\u0645\u0628\u064a\u0639: " + reportNumber(stats.cpp));
           lines.push("- \u0639\u062f\u062f \u0627\u0644\u0645\u0628\u064a\u0639\u0627\u062a: " + reportNumber(stats.purchaseCount, 0));
 
           if (platform !== "karzoun") {
             lines.push("- \u0645\u0646\u0635\u0629: " + reportNumber(stats.platformSales, 0));
             lines.push("- \u0648\u0627\u062a\u0633: " + reportNumber(stats.whatsappSales, 0));
+            if (stats.unknownSales > 0) {
+              lines.push("- \u063a\u064a\u0631 \u0645\u0639\u0631\u0648\u0641: " + reportNumber(stats.unknownSales, 0));
+            }
           }
 
           if (stats.clicks > 0 || isWhatsappClicksPlatform(platform)) {
@@ -2259,6 +2480,8 @@ function buildDailyReport(allRows, selectedStore, dateStr) {
 
   if (seedBtn) {
     seedBtn.addEventListener("click", async () => {
+      if (!window.confirm(t("confirmSeed"))) return;
+
       seedBtn.disabled = true;
       seedBtn.textContent = t("seedRunning");
       try {

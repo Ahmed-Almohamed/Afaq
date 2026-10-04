@@ -347,6 +347,12 @@ html[lang="ar"] .subtitle {
   background: var(--bg);
 }
 
+.purchase-value-input.purchase-value-excluded {
+  border-color: rgba(240,180,41,0.75);
+  background: rgba(240,180,41,0.08);
+  box-shadow: 0 0 0 3px rgba(240,180,41,0.08);
+}
+
 #purchase-values-container { display: grid; gap: 0.4rem; }
 #purchase-values-container input {
   min-height: 40px;
@@ -630,12 +636,16 @@ html[lang="ar"] .subtitle {
   color: var(--text);
 }
 
+.row-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.row-edit-btn,
 .row-delete-btn {
   min-height: 26px;
-  border: 1px solid rgba(248,113,113,0.3);
   border-radius: 5px;
-  background: var(--red-dim);
-  color: var(--red);
   font-size: 0.7rem;
   font-family: var(--font-mono);
   padding: 0.15rem 0.5rem;
@@ -643,11 +653,29 @@ html[lang="ar"] .subtitle {
   transition: background 0.15s, box-shadow 0.15s;
 }
 
+.row-edit-btn {
+  border: 1px solid rgba(45,212,191,0.3);
+  background: var(--teal-dim);
+  color: var(--teal);
+}
+
+.row-edit-btn:hover {
+  background: rgba(45,212,191,0.2);
+  box-shadow: 0 2px 8px rgba(45,212,191,0.15);
+}
+
+.row-delete-btn {
+  border: 1px solid rgba(248,113,113,0.3);
+  background: var(--red-dim);
+  color: var(--red);
+}
+
 .row-delete-btn:hover {
   background: rgba(248,113,113,0.2);
   box-shadow: 0 2px 8px rgba(248,113,113,0.15);
 }
 
+.row-edit-btn:disabled,
 .row-delete-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
 /* â”€â”€ FOOTER â”€â”€ */
@@ -695,8 +723,37 @@ html[lang="ar"] .subtitle {
   }
 }
 
+.maintenance-tools {
+  margin-top: 1.5rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid rgba(248,113,113,0.24);
+  border-radius: var(--radius);
+  background: rgba(248,113,113,0.035);
+}
+
+.maintenance-tools summary {
+  cursor: pointer;
+  color: var(--red);
+  font-weight: 700;
+  user-select: none;
+}
+
+.maintenance-hint {
+  margin: 0.75rem 0;
+  color: var(--text-3);
+  font-size: 0.8rem;
+}
+
+.maintenance-actions {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.maintenance-actions .submit-btn {
+  margin-top: 0;
+}
+
 .seed-btn {
-  margin-top: 0.65rem;
   background: transparent;
   border: 1px solid var(--border-hi);
   color: var(--text-2);
@@ -710,10 +767,13 @@ html[lang="ar"] .subtitle {
 }
 
 .delete-all-btn {
-  margin-top: 0.65rem;
   background: var(--red-dim);
   border: 1px solid rgba(248,113,113,0.3);
   color: var(--red);
+}
+
+@media (min-width: 600px) {
+  .maintenance-actions { grid-template-columns: 1fr 1fr; }
 }
 
 .delete-all-btn:hover:not(:disabled) {

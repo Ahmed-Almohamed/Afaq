@@ -1,0 +1,18 @@
+{
+  "assets": {
+    "directory": "../public",
+    "run_worker_first": true,
+    "binding": "ASSETS"
+  },
+  "d1_databases": [
+    {
+      "database_name": "afaq-db",
+      "database_id": "43fdf9cc-7b17-4966-b4c8-234f73db911e",
+      "binding": "DB"
+    }
+  ],
+  "account_id": "e00d9b32efafb89be0b8f82a3f15bb0d",
+  "name": "afaq",
+  "main": "worker.mjs",
+  "compatibility_date": "2026-08-15"
+}
