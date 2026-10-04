@@ -100,7 +100,7 @@
       "karzoun",
     ],
     "zmord store": ["TikTok", "Google", "Google Shopping", "Snapchat", "Meta", "karzoun"],
-    "alshahens store": ["Gulf-Google", "TikTok", "TikTok-tracker", "Snapchat-tracker", "Google", "Google-tracker", "Google Shopping", "Snapchat", "Meta", "karzoun"],
+    "alshahens store": ["TikTok-sonar-device", "Gulf-Google", "TikTok", "TikTok-tracker", "Snapchat-tracker", "Google", "Google-tracker", "Google Shopping", "Snapchat", "Meta", "karzoun"],
   };
   const internationalPlatformMap = {
     "birq store": [
@@ -134,7 +134,6 @@
       "Syria-Meta", "Syria-Meta-P10",
       "Yemen-Meta",
       "USA-Meta",
-      "TikTok-sonar-device",
     ],
   };
   const platformMapByStore =
@@ -1526,6 +1525,7 @@
       },
     ],
     "alshahens store": [
+      { platforms: ["TikTok-sonar-device"] },
       { title: "الخليج", platforms: ["Gulf-Google"] },
       { platforms: ["Google", "Google-tracker", "Google Shopping", "TikTok", "TikTok-tracker", "Snapchat-tracker", "Snapchat", "Meta", "karzoun"] },
     ],
@@ -1565,7 +1565,6 @@
       { title: "سوريا", platforms: ["Syria-Meta", "Syria-Meta-P10"] },
       { title: "اليمن", platforms: ["Yemen-Meta"] },
       { title: "أمريكا", platforms: ["USA-Meta"] },
-      { platforms: ["TikTok-sonar-device"] },
     ],
   };
   const reportPlatformGroups =

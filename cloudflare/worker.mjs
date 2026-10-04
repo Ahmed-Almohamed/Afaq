@@ -224,7 +224,7 @@ function seedMaps(market) {
         "Syria-Meta-P10",
         "Yemen-Meta",
         "USA-Meta",
-        "TikTok-sonar-device"
+
       ]
     };
   }
@@ -244,6 +244,7 @@ function seedMaps(market) {
     "birq store": ["Google", "Google Shopping", "TikTok", "Snapchat", "Meta", "karzoun"],
     "zmord store": ["TikTok", "Google", "Google Shopping", "Snapchat", "Meta", "karzoun"],
     "alshahens store": [
+      "TikTok-sonar-device",
       "Gulf-Google",
       "TikTok",
       "TikTok-tracker",
