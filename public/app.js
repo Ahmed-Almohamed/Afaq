@@ -100,7 +100,7 @@
       "karzoun",
     ],
     "zmord store": ["TikTok", "Google", "Google Shopping", "Snapchat", "Meta", "karzoun"],
-    "alshahens store": ["TikTok-sonar-device", "Gulf-Google", "TikTok", "TikTok-tracker", "Snapchat-tracker", "Google", "Google-tracker", "Google Shopping", "Snapchat", "Meta", "karzoun"],
+    "alshahens store": ["TikTok-sonar-device", "Qatar-Google", "TikTok", "TikTok-tracker", "Snapchat-tracker", "Google", "Google-tracker", "Google Shopping", "Snapchat", "Meta", "karzoun"],
   };
   const internationalPlatformMap = {
     "birq store": [
@@ -125,7 +125,7 @@
       "Gulf-Google",
     ],
     "alshahens store": [
-      "Qatar-Google", "Qatar-TikTok", "Qatar-Snapchat", "Qatar-Meta",
+      "Qatar-TikTok", "Qatar-Snapchat", "Qatar-Meta",
       "Kuwait-Google", "Kuwait-TikTok", "Kuwait-TikTok-tracker", "Kuwait-Snapchat", "Kuwait-Meta",
       "Jordan-Google", "Jordan-TikTok", "Jordan-Snapchat", "Jordan-Meta",
       "Oman-Google", "Oman-TikTok", "Oman-Snapchat", "Oman-Meta",
@@ -1526,7 +1526,7 @@
     ],
     "alshahens store": [
       { platforms: ["TikTok-sonar-device"] },
-      { title: "الخليج", platforms: ["Gulf-Google"] },
+      { title: "قطر", platforms: ["Qatar-Google"] },
       { platforms: ["Google", "Google-tracker", "Google Shopping", "TikTok", "TikTok-tracker", "Snapchat-tracker", "Snapchat", "Meta", "karzoun"] },
     ],
     "zmord store": [
@@ -1550,7 +1550,7 @@
       { title: "الخليج", platforms: ["Gulf-Google"] },
     ],
     "alshahens store": [
-      { title: "قطر", platforms: ["Qatar-Google", "Qatar-TikTok", "Qatar-Snapchat", "Qatar-Meta"] },
+      { title: "قطر", platforms: ["Qatar-TikTok", "Qatar-Snapchat", "Qatar-Meta"] },
       {
         title: "الكويت",
         platforms: [

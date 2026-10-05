@@ -198,7 +198,6 @@ function seedMaps(market) {
         "Gulf-Google"
       ],
       "alshahens store": [
-        "Qatar-Google",
         "Qatar-TikTok",
         "Qatar-Snapchat",
         "Qatar-Meta",
@@ -245,7 +244,7 @@ function seedMaps(market) {
     "zmord store": ["TikTok", "Google", "Google Shopping", "Snapchat", "Meta", "karzoun"],
     "alshahens store": [
       "TikTok-sonar-device",
-      "Gulf-Google",
+      "Qatar-Google",
       "TikTok",
       "TikTok-tracker",
       "Snapchat-tracker",
