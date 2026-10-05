@@ -229,6 +229,8 @@ function seedMaps(market) {
   }
   return {
     "micro store": [
+      "TikTok-vacuums",
+      "Snapchat-vacuums",
       "Google-projector",
       "TikTok-projector",
       "snapchat-projector",

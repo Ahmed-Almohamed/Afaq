@@ -64,6 +64,8 @@
     "meta syria k30": { en: "meta syria k30", ar: "ميتا سوريا (k30)" },
     "meta syria jc800p": { en: "meta syria jc800p", ar: "ميتا سوريا (jc800p)" },
     "TikTok-projector": { en: "TikTok-projector", ar: "تيك توك - بروجكتور" },
+    "TikTok-vacuums": { en: "TikTok - Vacuums", ar: "تيك توك - مكانس" },
+    "Snapchat-vacuums": { en: "Snapchat - Vacuums", ar: "سناب شات - مكانس" },
     "TikTok-locks": { en: "TikTok - Locks", ar: "تيك توك - أقفال" },
     "snapchat-projector": { en: "snapchat-projector", ar: "سناب شات - بروجكتور" },
     "Google-projector": { en: "Google-projector", ar: "جوجل بروجيكتور" },
@@ -82,6 +84,8 @@
       "Google-projector",
       "TikTok-projector",
       "TikTok-locks",
+      "TikTok-vacuums",
+      "Snapchat-vacuums",
       "snapchat-projector",
       "Meta-projector",
       "Google",
@@ -1481,6 +1485,8 @@
   const reportPlatformNames = {
     "TikTok-projector": "تيك توك",
     "TikTok-locks": "تيك توك - أقفال",
+    "TikTok-vacuums": "تيك توك - مكانس",
+    "Snapchat-vacuums": "سناب شات - مكانس",
     "snapchat-projector": "سناب شات",
     "Google-projector": "جوجل",
     "Meta-projector": "ميتا",
@@ -1510,6 +1516,7 @@
     "micro store": [
       { title: "بروجيكتور", platforms: ["Google-projector", "TikTok-projector", "snapchat-projector", "Meta-projector"] },
       { title: "أقفال", platforms: ["TikTok-locks"] },
+      { title: "مكانس", platforms: ["TikTok-vacuums", "Snapchat-vacuums"] },
       { title: "داشكام", platforms: ["Google", "Google Shopping", "TikTok", "Snapchat", "Meta", "karzoun"] },
     ],
     "birq store": [

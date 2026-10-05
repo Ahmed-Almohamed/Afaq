@@ -322,6 +322,8 @@ app.post("/seed", async (req, res) => {
     const market = req.body.market === "international" ? "international" : "saudi";
     const saudiPlatformMap = {
       "micro store": [
+      "TikTok-vacuums",
+      "Snapchat-vacuums",
         "Google-projector",
         "TikTok-projector",
         "TikTok-locks",
