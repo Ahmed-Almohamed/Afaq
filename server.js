@@ -360,7 +360,7 @@ app.post("/seed", async (req, res) => {
         "Lebanon-Meta-P10",
       ],
       "alshahens store": [
-        "Qatar-Google", "Qatar-TikTok", "Qatar-Snapchat", "Qatar-Meta",
+        "Gulf-TikTok-sonar-device", "Qatar-Google", "Qatar-TikTok", "Qatar-Snapchat", "Qatar-Meta",
         "Kuwait-Google", "Kuwait-TikTok", "Kuwait-TikTok-tracker", "Kuwait-Snapchat", "Kuwait-Meta",
         "Jordan-Google", "Jordan-TikTok", "Jordan-Snapchat", "Jordan-Meta",
         "Oman-Google", "Oman-TikTok", "Oman-Snapchat", "Oman-Meta",

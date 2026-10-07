@@ -73,6 +73,7 @@
     "TikTok-tracker": { en: "TikTok tracker", ar: "تيك توك جهاز التتبع" },
     "Snapchat-tracker": { en: "Snapchat tracker", ar: "سناب شات جهاز التتبع" },
     "Google-tracker": { en: "Google tracker", ar: "جوجل جهاز التتبع" },
+    "Gulf-TikTok-sonar-device": { en: "TikTok sonar device - Gulf", ar: "تيك توك السونار - الخليج" },
     "TikTok-sonar-device": { en: "TikTok sonar device", ar: "تيك توك جهاز السونار" },
     "Syria-Meta": { en: "Syria Meta", ar: "سوريا ميتا" },
     "TikTok-viofo": { en: "TikTok-viofo", ar: "تيك توك - فيوفو" },
@@ -138,6 +139,7 @@
       "Syria-Meta", "Syria-Meta-P10",
       "Yemen-Meta",
       "USA-Meta",
+      "Gulf-TikTok-sonar-device",
     ],
   };
   const platformMapByStore =
@@ -1494,6 +1496,7 @@
     "Snapchat-tracker": "سناب شات جهاز التتبع",
     "Google-tracker": "جوجل جهاز التتبع",
     "TikTok-sonar-device": "تيك توك جهاز السونار",
+    "Gulf-TikTok-sonar-device": "تيك توك السونار - الخليج",
     "TikTok-viofo": "تيك توك",
     "snapchat-viofo": "سناب شات",
     "google iraq": "جوجل (العراق)",
@@ -1572,6 +1575,7 @@
       { title: "سوريا", platforms: ["Syria-Meta", "Syria-Meta-P10"] },
       { title: "اليمن", platforms: ["Yemen-Meta"] },
       { title: "أمريكا", platforms: ["USA-Meta"] },
+      { title: "الخليج", platforms: ["Gulf-TikTok-sonar-device"] },
     ],
   };
   const reportPlatformGroups =

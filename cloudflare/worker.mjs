@@ -223,6 +223,7 @@ function seedMaps(market) {
         "Syria-Meta-P10",
         "Yemen-Meta",
         "USA-Meta",
+        "Gulf-TikTok-sonar-device",
 
       ]
     };
