@@ -259,6 +259,14 @@
                 <option value="" id="export-day-placeholder">Select day</option>
               </select>
               <button type="button" class="day-export-btn" id="export-day-btn">Export</button>
+              <button type="button" class="day-export-btn summary-export-btn" id="export-summary-btn">Extract summary</button>
+            </div>
+            <div class="daily-summary" id="daily-summary" hidden>
+              <div class="daily-summary-head">
+                <strong id="daily-summary-title">Daily summary</strong>
+                <button type="button" class="day-export-btn" id="copy-summary-btn">Copy</button>
+              </div>
+              <pre id="daily-summary-text" dir="rtl"></pre>
             </div>
           </div>
           <div class="table-wrap" id="records-wrap" hidden>

@@ -306,6 +306,11 @@
       exportByPeriodLabel: "Export by saved period",
       selectExportPeriod: "Select period",
       exportSelectedPeriod: "Export",
+      extractSummary: "Extract summary",
+      dailySummary: "Daily summary",
+      copySummary: "Copy",
+      copiedSummary: "Summary copied.",
+      noSummaryRecords: "No records for this day and store.",
       exportPickPeriod: "Choose a period to export.",
       loadSavedTitle: "Load saved entry",
       loadSavedBtn: "Load into form",
@@ -409,6 +414,11 @@
       exportByPeriodLabel: "تصدير حسب الفترة المحفوظة",
       selectExportDay: "اختر اليوم",
       exportSelectedDay: "تصدير",
+      extractSummary: "استخراج ملخص",
+      dailySummary: "ملخص اليوم",
+      copySummary: "نسخ",
+      copiedSummary: "تم نسخ الملخص.",
+      noSummaryRecords: "لا توجد سجلات لهذا اليوم والمتجر.",
       exportPickDay: "اختر اليوم للتصدير.",
       loadSavedTitle: "تحميل إدخال محفوظ",
       loadSavedBtn: "تحميل إلى النموذج",
@@ -507,8 +517,11 @@
     setText("label-export-store", t("exportStoreLabel"));
     setText("export-store-all-option", t("exportStoreAll"));
     setText("export-by-day-label", t("exportByPeriodLabel"));
-    setText("export-day-placeholder", t("selectExportPeriod"));
-    setText("export-day-btn", t("exportSelectedPeriod"));
+    setText("export-day-placeholder", t("selectExportPeriod") || t("selectExportDay"));
+    setText("export-day-btn", t("exportSelectedPeriod") || t("exportSelectedDay"));
+    setText("export-summary-btn", t("extractSummary"));
+    setText("daily-summary-title", `${t("dailySummary")}${document.getElementById("daily-summary")?.hidden ? "" : " · " + document.getElementById("export-day-select")?.value}`);
+    setText("copy-summary-btn", t("copySummary"));
     setText("load-saved-title", t("loadSavedTitle"));
     setText("seed-btn", t("seedBtn"));
     setText("delete-all-btn", t("deleteAllBtn"));
@@ -943,6 +956,38 @@
     return out;
   }
 
+  function buildDailyCostSummary(allRows, date, selectedStore) {
+    const rows = allRows.filter((row) => row.date === date && (!selectedStore || row.store === selectedStore));
+    if (!rows.length) return "";
+    const lines = ["■تكاليف الاعلانات"];
+    if (currentMarket === "saudi") {
+      ["birq store", "micro store", "zmord store", "alshahens store"]
+        .filter((store) => !selectedStore || store === selectedStore)
+        .forEach((store) => {
+          const storeRows = rows.filter((row) => row.store === store);
+          if (!storeRows.length) return;
+          lines.push(`●${reportStoreName(store)}: ${reportNumber(sum(storeRows, "cost"))} ريال`);
+        });
+    } else {
+      selectedReportStores(selectedStore).forEach((store) => {
+        const byCountry = new Map();
+        rows.filter((row) => row.store === store).forEach((row) => {
+          const code = String(row.platform || "").split("-")[0];
+          const country = countryLabels[code]?.ar || "أخرى";
+          if (!byCountry.has(country)) byCountry.set(country, []);
+          byCountry.get(country).push(row);
+        });
+        byCountry.forEach((countryRows, country) => {
+          const sales = flattenPurchaseValuesForExport(countryRows.sort((a, b) => Number(a.id) - Number(b.id)))
+            .filter((value) => value > 0)
+            .map((value) => `مبيع ${formatPurchaseExportValue(value)}`);
+          lines.push(`●${reportStoreName(store)} ${country}: ${reportNumber(sum(countryRows, "cost"))} ريال${sales.length ? " " + sales.join("  ") : ""}`);
+        });
+      });
+    }
+    return lines.join("\n");
+  }
+
   function parseYMDLocal(dateStr) {
     const parts = String(dateStr || "").trim().split("-");
     if (parts.length !== 3) return null;
@@ -1187,6 +1232,59 @@
         return;
       }
       runExportForPeriod("daily", d).catch(() => showBanner(t("exportFailed"), "error"));
+    });
+  }
+
+  const summaryButton = document.getElementById("export-summary-btn");
+  const summaryPanel = document.getElementById("daily-summary");
+  const summaryText = document.getElementById("daily-summary-text");
+  const copySummaryButton = document.getElementById("copy-summary-btn");
+  document.getElementById("export-day-select")?.addEventListener("change", () => { summaryPanel.hidden = true; });
+  exportStoreSelect?.addEventListener("change", () => { summaryPanel.hidden = true; });
+  if (summaryButton) {
+    summaryButton.addEventListener("click", async () => {
+      const date = document.getElementById("export-day-select")?.value;
+      if (!date) {
+        showBanner(t("exportPickPeriod"), "error");
+        return;
+      }
+      summaryButton.disabled = true;
+      try {
+        const response = await fetch(`/data?market=${currentMarket}`);
+        if (!response.ok) throw new Error("Could not load records");
+        const rows = await response.json();
+        const selectedStore = exportStoreSelect?.value || "";
+        const summary = buildDailyCostSummary(rows, date, selectedStore);
+        if (!summary) {
+          summaryPanel.hidden = true;
+          showBanner(t("noSummaryRecords"), "error");
+          return;
+        }
+        summaryText.textContent = summary;
+        document.getElementById("daily-summary-title").textContent = `${t("dailySummary")} · ${date}`;
+        summaryPanel.hidden = false;
+      } catch {
+        showBanner(t("exportFailed"), "error");
+      } finally {
+        summaryButton.disabled = false;
+      }
+    });
+  }
+  if (copySummaryButton) {
+    copySummaryButton.addEventListener("click", async () => {
+      try {
+        await navigator.clipboard.writeText(summaryText.textContent);
+        showBanner(t("copiedSummary"), "success");
+        hideBannerSoon();
+      } catch {
+        summaryText.tabIndex = 0;
+        summaryText.focus();
+        const selection = window.getSelection();
+        selection.removeAllRanges();
+        const range = document.createRange();
+        range.selectNodeContents(summaryText);
+        selection.addRange(range);
+      }
     });
   }
 
@@ -2426,6 +2524,7 @@ function buildDailyReport(allRows, selectedStore, dateStr) {
     const wrap = document.getElementById("export-by-day-wrap");
     const sel = document.getElementById("export-day-select");
     if (!wrap || !sel) return;
+    const selectedDate = sel.value;
     sel.innerHTML = "";
     const placeholder = document.createElement("option");
     placeholder.value = "";
@@ -2443,6 +2542,8 @@ function buildDailyReport(allRows, selectedStore, dateStr) {
       opt.textContent = d;
       sel.appendChild(opt);
     });
+    if (dates.includes(selectedDate)) sel.value = selectedDate;
+    else document.getElementById("daily-summary")?.setAttribute("hidden", "");
     wrap.hidden = false;
   }
 

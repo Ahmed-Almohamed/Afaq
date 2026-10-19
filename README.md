@@ -9,6 +9,7 @@ operations. It runs on Node.js and stores its records in a local SQLite file.
 - Track stores, platforms, costs, purchases, and WhatsApp activity
 - Calculate sales and performance metrics automatically
 - Export daily, weekly, and monthly text reports
+- Extract a copyable daily ad-cost summary by store; international summaries include each country's individual sale values
 - English and Arabic interface with right-to-left support
 - Generate sample data for testing
 
