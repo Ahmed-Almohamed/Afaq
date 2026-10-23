@@ -61,6 +61,10 @@ function initializeDatabase() {
       db.exec("ALTER TABLE sales ADD COLUMN market TEXT NOT NULL DEFAULT 'saudi'");
     }
     db.exec("CREATE INDEX IF NOT EXISTS idx_sales_market_date ON sales(market, date)");
+    db.exec(`CREATE TABLE IF NOT EXISTS weekly_no_reply (
+      market TEXT NOT NULL, store TEXT NOT NULL, week_start TEXT NOT NULL,
+      count INTEGER NOT NULL DEFAULT 0, PRIMARY KEY (market, store, week_start)
+    )`);
 
     console.log("✓ Database tables initialized successfully");
     return true;
@@ -178,6 +182,25 @@ app.get("/data", async (req, res) => {
     console.error("Error retrieving data:", error);
     res.status(500).json({ error: "Failed to read data." });
   }
+});
+
+app.get("/weekly-no-reply", (req, res) => {
+  const { market, store, week } = req.query;
+  if (!/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(String(week || ""))) return res.status(400).json({ error: "Invalid week" });
+  const row = db.prepare("SELECT count FROM weekly_no_reply WHERE market=? AND store=? AND week_start=?")
+    .get(market === "international" ? "international" : "saudi", String(store || ""), week);
+  res.json({ count: row?.count ?? 0 });
+});
+
+app.post("/weekly-no-reply", (req, res) => {
+  const { market, store, week, count } = req.body;
+  if (req.get("Origin") !== `${req.protocol}://${req.get("host")}` ||
+      !/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(String(week || "")) ||
+      !["", "micro store", "zmord store", "birq store", "alshahens store"].includes(store) ||
+      !Number.isSafeInteger(count) || count < 0 || count > 1000000) return res.status(400).json({ error: "Invalid input" });
+  db.prepare("INSERT INTO weekly_no_reply(market,store,week_start,count) VALUES(?,?,?,?) ON CONFLICT(market,store,week_start) DO UPDATE SET count=excluded.count")
+    .run(market === "international" ? "international" : "saudi", store, week, count);
+  res.json({ ok: true, count });
 });
 
 /**

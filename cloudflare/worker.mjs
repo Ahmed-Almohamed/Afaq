@@ -318,6 +318,22 @@ async function serveIndex(request, env) {
   url.pathname = "/";
   return env.ASSETS.fetch(new Request(url, request));
 }
+async function weeklyNoReply(request, url, env) {
+  const input = request.method === "GET" ? Object.fromEntries(url.searchParams) : await bodyJson(request);
+  const market = input.market === "international" ? "international" : "saudi";
+  const store = String(input.store || "");
+  const week = String(input.week || "");
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(week) || !["", "micro store", "zmord store", "birq store", "alshahens store"].includes(store)) return json({ error: "Invalid week or store" }, 400);
+  if (request.method === "GET") {
+    const row = await env.DB.prepare("SELECT count FROM weekly_no_reply WHERE market=? AND store=? AND week_start=?").bind(market, store, week).first();
+    return json({ count: row?.count ?? 0 });
+  }
+  if (request.headers.get("Origin") !== url.origin) return json({ error: "Origin not allowed" }, 403);
+  const count = Number(input.count);
+  if (!Number.isSafeInteger(count) || count < 0 || count > 1000000) return json({ error: "Invalid count" }, 400);
+  await env.DB.prepare("INSERT INTO weekly_no_reply(market,store,week_start,count) VALUES(?,?,?,?) ON CONFLICT(market,store,week_start) DO UPDATE SET count=excluded.count").bind(market, store, week, count).run();
+  return json({ ok: true, count });
+}
 __name(serveIndex, "serveIndex");
 __name2(serveIndex, "serveIndex");
 var worker_default = {
@@ -327,6 +343,7 @@ var worker_default = {
     try {
       if (request.method === "POST" && path === "/add") return addRecord(request, env);
       if (request.method === "GET" && path === "/data") return listRecords(url, env);
+      if ((request.method === "GET" || request.method === "POST") && path === "/weekly-no-reply") return weeklyNoReply(request, url, env);
       if (request.method === "DELETE" && path === "/delete-all") return deleteAll(url, env);
       if (request.method === "POST" && path === "/seed") return seedRecords(request, env);
       if (request.method === "GET" && (path === "/saudi" || path === "/international")) {

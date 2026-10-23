@@ -1,7 +1,7 @@
 # Afaq — Local Sales Intelligence
 
-Afaq is a bilingual English/Arabic sales reporting application for local retail
-operations. It runs on Node.js and stores its records in a local SQLite file.
+Afaq is a bilingual English/Arabic sales reporting application. It runs locally
+with Node.js and SQLite, or on Cloudflare Workers with a D1 database.
 
 ## Features
 
@@ -9,6 +9,7 @@ operations. It runs on Node.js and stores its records in a local SQLite file.
 - Track stores, platforms, costs, purchases, and WhatsApp activity
 - Calculate sales and performance metrics automatically
 - Export daily, weekly, and monthly text reports
+- Start new entries on yesterday's date in Saudi Arabia; weekly reports remember each saved week's no-reply sales count
 - Extract a copyable daily ad-cost summary by store; international summaries include each country's individual sale values
 - English and Arabic interface with right-to-left support
 - Generate sample data for testing
@@ -17,7 +18,7 @@ operations. It runs on Node.js and stores its records in a local SQLite file.
 
 - Node.js 20 or newer
 
-No PostgreSQL installation, cloud database, or online hosting account is needed.
+No PostgreSQL installation is needed for local use.
 
 ## Run Locally
 
@@ -52,6 +53,14 @@ application and replace the database file.
 | `PUT` | `/update/:id` | Update a record |
 | `DELETE` | `/delete/:id` | Delete a record |
 | `POST` | `/seed` | Generate sample data |
+| `GET`, `POST` | `/weekly-no-reply` | Read or save a weekly no-reply sales count by market and store |
+
+## Cloudflare
+
+The Worker configuration is in `cloudflare/wrangler.json`. Before deploying a
+version with weekly no-reply counts to an existing D1 database, apply
+`migrations/20261023_weekly_no_reply.sql` using Wrangler's remote D1 execute
+command. Then deploy the Worker and static assets with Wrangler.
 
 ## Project Files
 

@@ -1118,7 +1118,7 @@
 
     const n = consecutivePinStreak(index, storeKey, platformKey, endDateStr, options);
     const markLen = Math.max(1, n);
-    return { marks: "📌".repeat(markLen), count: n, kind: "pin" };
+    return { marks: "❌".repeat(Math.floor(markLen / 10)) + "📌".repeat(markLen % 10), count: n, kind: "pin" };
   }
 
   function renderPurchaseValueInputs() {
@@ -2414,6 +2414,7 @@ function buildDailyReport(allRows, selectedStore, dateStr) {
     Array.from(document.querySelectorAll(".supplement-weekly-field")).forEach((el) => {
       el.hidden = !isWeekly;
     });
+    document.getElementById("supplement-prev-unanswered")?.closest(".field")?.setAttribute("hidden", "");
     Array.from(document.querySelectorAll(".supplement-monthly-field")).forEach((el) => {
       el.hidden = !isMonthly;
     });
@@ -2444,10 +2445,24 @@ function buildDailyReport(allRows, selectedStore, dateStr) {
     };
   }
 
-  function requestSupplementValues(type) {
+  async function requestSupplementValues(type, startDate, selectedStore) {
     if (type !== "weekly" && type !== "monthly") return Promise.resolve({});
     if (!supplementModal) return Promise.resolve({});
     setSupplementMode(type);
+    const weekStart = type === "weekly" ? getWeekRange(startDate)?.start : null;
+    if (type === "weekly" && !weekStart) throw new Error("Invalid week");
+    if (weekStart) {
+      const previousWeek = getPreviousWeekRange(startDate).start;
+      const readWeek = async (week) => {
+        const params = new URLSearchParams({ market: currentMarket, store: selectedStore, week });
+        const response = await fetch(`/weekly-no-reply?${params}`);
+        if (!response.ok) throw new Error("Could not load saved week");
+        return response.json();
+      };
+      const [previous, current] = await Promise.all([readWeek(previousWeek), readWeek(weekStart)]);
+      document.getElementById("supplement-prev-unanswered").value = String(previous.count ?? 0);
+      document.getElementById("supplement-unanswered").value = String(current.count ?? 0);
+    }
     supplementModal.hidden = false;
     if (supplementPaste) supplementPaste.value = "";
 
@@ -2458,8 +2473,24 @@ function buildDailyReport(allRows, selectedStore, dateStr) {
         supplementSkip && supplementSkip.removeEventListener("click", onSkip);
         supplementCancel && supplementCancel.removeEventListener("click", onCancel);
       };
-      const onContinue = () => {
+      const onContinue = async () => {
         const values = getSupplementValues(type);
+        if (weekStart) {
+          supplementContinue.disabled = true;
+          try {
+            const response = await fetch("/weekly-no-reply", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ market: currentMarket, store: selectedStore, week: weekStart, count: values.unansweredPurchases }),
+            });
+            if (!response.ok) throw new Error("Could not save this week");
+          } catch (error) {
+            supplementContinue.disabled = false;
+            showBanner(t("exportFailed"), "error");
+            return;
+          }
+          supplementContinue.disabled = false;
+        }
         cleanup();
         resolve(values);
       };
@@ -2549,7 +2580,10 @@ function buildDailyReport(allRows, selectedStore, dateStr) {
 
   const dateInput = document.getElementById("date");
   if (dateInput && !dateInput.value) {
-    dateInput.value = new Date().toISOString().slice(0, 10);
+    const parts = new Intl.DateTimeFormat("en", { timeZone: "Asia/Riyadh", year: "numeric", month: "2-digit", day: "2-digit" })
+      .formatToParts(new Date(Date.now() - 86400000));
+    const part = (type) => parts.find((item) => item.type === type)?.value;
+    dateInput.value = `${part("year")}-${part("month")}-${part("day")}`;
   }
 
   if (langSelect) {
@@ -2625,7 +2659,7 @@ function buildDailyReport(allRows, selectedStore, dateStr) {
         return;
       }
       try {
-        const supplement = await requestSupplementValues(type);
+        const supplement = await requestSupplementValues(type, start, exportStoreSelect?.value || "");
         await runExportForPeriod(type, start, end || start, supplement);
       } catch {
         showBanner(t("exportFailed"), "error");

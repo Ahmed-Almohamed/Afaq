@@ -270,6 +270,7 @@ body[data-market="international"] #nav-international {
 .form { display: grid; gap: 1rem; }
 
 .field { display: flex; flex-direction: column; gap: 0.4rem; }
+.modal-grid .field[hidden] { display: none; }
 .field--full { grid-column: 1 / -1; }
 
 .field label {
