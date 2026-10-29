@@ -1786,9 +1786,9 @@
     return Number.isFinite(value) ? value : fallback;
   }
 
-  function parseSupplementNumber(id) {
+  function parseSupplementNumber(id, emptyValue = 0) {
     const el = document.getElementById(id);
-    if (!el) return 0;
+    if (!el || !String(el.value || "").trim()) return emptyValue;
     const value = Number(String(el.value || "").replace(",", "."));
     return Number.isFinite(value) ? value : 0;
   }
@@ -2047,8 +2047,10 @@ function buildWeeklyReport(allRows, selectedStore, periodValue, options = {}) {
       const prevNoReply = optionNumber(options, "previousUnansweredPurchases", 0);
       const totalPurchases = currentSummary.purchaseCount + noReply;
       const prevTotalPurchases = previousSummary.purchaseCount + prevNoReply;
-      const totalCpp = totalPurchases > 0 ? currentSummary.cost / totalPurchases : currentSummary.cost;
-      const prevTotalCpp = prevTotalPurchases > 0 ? previousSummary.cost / prevTotalPurchases : previousSummary.cost;
+      const totalCost = currentSummary.cost + contentCost;
+      const previousTotalCost = previousSummary.cost + sum(previousStoreRows, "content_cost");
+      const totalCpp = totalPurchases > 0 ? totalCost / totalPurchases : totalCost;
+      const prevTotalCpp = prevTotalPurchases > 0 ? previousTotalCost / prevTotalPurchases : previousTotalCost;
 
       lines.push("");
       lines.push("\u25cf\u062a\u0643\u0627\u0644\u064a\u0641 \u0635\u0646\u0627\u0639\u0629 \u0627\u0644\u0645\u062d\u062a\u0648\u0649 (" + storeName + ")\u25cf");
@@ -2060,6 +2062,7 @@ function buildWeeklyReport(allRows, selectedStore, periodValue, options = {}) {
       lines.push("");
       lines.push("- \u0639\u062f\u062f \u0645\u0628\u064a\u0639\u0627\u062a \u0627\u0644\u0627\u0639\u0644\u0627\u0646\u0627\u062a : " + compareText(currentSummary.purchaseCount, previousSummary.purchaseCount, 0));
       lines.push("- \u062a\u0643\u0644\u0641\u0629 \u0625\u062c\u0645\u0627\u0644\u064a \u0627\u0639\u0644\u0627\u0646\u0627\u062a:" + compareText(currentSummary.cost, previousSummary.cost));
+      lines.push("- التكلفة الإجمالية (الإعلانات وصناعة المحتوى):" + compareText(totalCost, previousTotalCost));
       lines.push("- \u0645\u062a\u0648\u0633\u0637 \u062a\u0643\u0644\u0641\u0629 \u0627\u0644\u0634\u0631\u0627\u0621:" + compareText(currentSummary.cpp, previousSummary.cpp));
       lines.push("- \u0645\u0639\u062f\u0644 \u0627\u0644\u0645\u0628\u064a\u0639: " + compareText(currentSummary.roas, previousSummary.roas));
       lines.push("- \u0639\u062f\u062f \u0645\u0628\u064a\u0639\u0627\u062a (\u0639\u062f\u0645 \u0627\u0644\u0631\u062f) :" + compareText(noReply, prevNoReply, 0));
@@ -2291,6 +2294,8 @@ function buildDailyReport(allRows, selectedStore, dateStr) {
       const pasteStats = parseMonthlyPasteStats(options.pasteText || "");
       const socialNoReply = monthlySocialNoReply(store, pasteStats);
       const totalWithNoReply = summary.purchaseCount + socialNoReply;
+      const totalCost = summary.cost + contentCost;
+      const totalCpp = summary.purchaseCount > 0 ? totalCost / summary.purchaseCount : totalCost;
       lines.push("\u25cb\u062c\u0648\u062c\u0644 SEO");
       lines.push("-\u0627\u0644\u062a\u0643\u0644\u0641\u0629 \u0627\u0644\u0643\u0644\u064a\u0629 : " + reportNumber(seoCost));
       lines.push("-\u062a\u0643\u0644\u0641\u0629 \u0627\u0644\u0645\u0628\u064a\u0639: " + reportNumber(seoCpp));
@@ -2300,8 +2305,9 @@ function buildDailyReport(allRows, selectedStore, dateStr) {
       lines.push("- \u0639\u062f\u062f \u0627\u0644\u0645\u0642\u0627\u0637\u0639: " + reportNumber(contentCount, 0));
       lines.push("- \u0627\u0644\u062a\u0643\u0644\u0641\u0629 \u0627\u0644\u0643\u0644\u064a\u0629: " + reportNumber(contentCost));
       lines.push("");
-      lines.push("\u25cb\u0645\u062a\u0648\u0633\u0637 \u062a\u0643\u0644\u0641\u0629 \u0627\u0644\u0634\u0631\u0627\u0621: " + reportNumber(summary.cpp));
+      lines.push("\u25cb\u0645\u062a\u0648\u0633\u0637 \u062a\u0643\u0644\u0641\u0629 \u0627\u0644\u0634\u0631\u0627\u0621: " + reportNumber(totalCpp));
       lines.push("\u25cb\u062a\u0643\u0644\u0641\u0629 \u0625\u062c\u0645\u0627\u0644\u064a \u0627\u0639\u0644\u0627\u0646\u0627\u062a: " + reportNumber(summary.cost));
+      lines.push("○التكلفة الإجمالية (الإعلانات وصناعة المحتوى): " + reportNumber(totalCost));
       lines.push("\u25cb\u0627\u062c\u0645\u0627\u0644\u0649 \u0627\u0644\u0645\u0628\u064a\u0639\u0627\u062a : " + reportNumber(summary.purchaseCount, 0) + " + " + reportNumber(socialNoReply, 0) + "=" + reportNumber(totalWithNoReply, 0));
       lines.push("\u25cb\u0627\u062c\u0645\u0627\u0644\u064a \u0627\u0644\u0633\u0648\u0634\u064a\u0627\u0644 \u0645\u064a\u062f\u064a\u0627(\u0644\u0645 \u064a\u0631\u062f) " + reportNumber(monthlyNoReplyRates[store] || 50, 0) + "%=" + reportNumber(socialNoReply, 0));
 
@@ -2434,8 +2440,8 @@ function buildDailyReport(allRows, selectedStore, dateStr) {
 
   function getSupplementValues(type) {
     return {
-      contentCount: parseSupplementNumber("supplement-content-count"),
-      contentCost: parseSupplementNumber("supplement-content-cost"),
+      contentCount: parseSupplementNumber("supplement-content-count", null),
+      contentCost: parseSupplementNumber("supplement-content-cost", null),
       unansweredPurchases: type === "weekly" ? parseSupplementNumber("supplement-unanswered") : 0,
       previousUnansweredPurchases:
         type === "weekly" ? parseSupplementNumber("supplement-prev-unanswered") : 0,

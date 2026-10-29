@@ -1,0 +1,32 @@
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const vm = require('node:vm');
+// Parse the real report functions without running UI initialization or fetching data.
+const acorn = require('acorn');
+const source = fs.readFileSync(require('node:path').join(__dirname, '../public/app.js'), 'utf8');
+const body = acorn.parse(source, {ecmaVersion:'latest'}).body[0].expression.callee.body.body;
+const functions = body.filter(node => node.type === 'FunctionDeclaration').map(node => source.slice(node.start,node.end)).join('\n');
+const inputs = {};
+const context = vm.createContext({document:{getElementById:id=>inputs[id]}, currentMarket:'saudi', monthlyNoReplyRates:{}, reportStores:['micro store']});
+vm.runInContext(functions, context);
+vm.runInContext(`storeReportGroups = () => []; reportStoreName = store => store;
+getRowCountedSalesBreakdown = row => ({platformSales:row.sales||0,whatsappSales:0,unknownSales:0});
+getRowPurchaseValueTotal = () => 0; parseMonthlyPasteStats = () => ({}); monthlySocialNoReply = () => 0; monthlySalesBlock = () => '';`,context);
+const rows=[{store:'micro store',date:'2026-10-22',cost:100,content_cost:20,sales:2},{store:'micro store',date:'2026-10-15',cost:60,content_cost:10,sales:1},{store:'other',date:'2026-10-22',cost:999,content_cost:999,sales:1},{store:'micro store',date:'2026-09-22',cost:999,content_cost:999,sales:1}];
+const weekly=options=>context.buildWeeklyReport(rows,'micro store','2026-10-22',options);
+let text=weekly({contentCost:null});
+assert.match(text,/التكلفة الإجمالية \(الإعلانات وصناعة المحتوى\):120🔼 70/);
+assert.match(text,/متوسط تكلفة الشراء الاجمالي:60🔽 70/);
+assert.match(weekly({contentCost:40}),/المحتوى\):140🔼 70/);
+assert.match(weekly({contentCost:0}),/المحتوى\):100🔼 70/);
+let monthly=context.buildMonthlyReport(rows,'micro store','2026-10',{contentCost:null});
+assert.match(monthly,/المحتوى\): 190/);
+assert.match(monthly,/متوسط تكلفة الشراء: 63.33/);
+assert.match(context.buildMonthlyReport(rows,'micro store','2026-10',{contentCost:40}),/المحتوى\): 200/);
+assert.match(context.buildMonthlyReport([],'micro store','2026-10',{contentCost:50}),/المحتوى\): 50/);
+assert.doesNotMatch(monthly,/NaN|Infinity/);
+inputs.cost={value:''};assert.equal(context.parseSupplementNumber('cost',null),null);
+inputs.cost.value='0';assert.equal(context.parseSupplementNumber('cost',null),0);
+inputs.cost.value='12,50';assert.equal(context.parseSupplementNumber('cost',null),12.5);
+console.log('PASS: weekly/monthly totals, purchase cost, previous week, store/date filtering, saved content fallback, overrides, explicit zero and no sales.');
+

@@ -8,7 +8,7 @@
   },
   "scripts": {
     "start": "node server.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node tests/report-content-cost.cjs"
   },
   "keywords": [],
   "author": "",
@@ -18,5 +18,8 @@
     "better-sqlite3": "^12.2.0",
     "cors": "^2.8.6",
     "express": "^5.2.1"
+  },
+  "devDependencies": {
+    "acorn": "^8.19.0"
   }
 }
