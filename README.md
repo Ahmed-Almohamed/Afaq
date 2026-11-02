@@ -11,6 +11,7 @@ with Node.js and SQLite, or on Cloudflare Workers with a D1 database.
 - Export daily, weekly, and monthly text reports
 - Start new entries on yesterday's date in Saudi Arabia; weekly reports remember each saved week's no-reply sales count
 - Extract a copyable daily ad-cost summary by store; international summaries include each country's individual sale values
+- Read monthly Excel pastes as TSV or Markdown, with channel headings or the standard 17-column layout; preview totals before exporting
 - English and Arabic interface with right-to-left support
 - Generate sample data for testing
 

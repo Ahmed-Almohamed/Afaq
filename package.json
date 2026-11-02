@@ -8,7 +8,7 @@
   },
   "scripts": {
     "start": "node server.js",
-    "test": "node tests/report-content-cost.cjs"
+    "test": "node tests/report-content-cost.cjs && node tests/monthly-excel-paste.cjs"
   },
   "keywords": [],
   "author": "",

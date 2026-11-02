@@ -1811,83 +1811,109 @@
       .toLowerCase();
   }
 
+  function spreadsheetNumber(value) {
+    const normalized = String(value ?? "").trim()
+      .replace(/[٠-٩]/g, digit => String(digit.charCodeAt(0) - 1632))
+      .replace(/[۰-۹]/g, digit => String(digit.charCodeAt(0) - 1776))
+      .replace(/[\s\u200e\u200f\u061c٬]/g, "")
+      .replace(/٫/g, ".");
+    if (!normalized || !/^[+]?\d+(?:[.,]\d+)*$/.test(normalized)) return null;
+    const numberText = /^\d{1,3}(?:,\d{3})+$/.test(normalized)
+      ? normalized.replace(/,/g, "") : normalized.replace(",", ".");
+    const valueNumber = Number(numberText);
+    return Number.isFinite(valueNumber) ? valueNumber : null;
+  }
+
+  function spreadsheetRows(text) {
+    return String(text || "").replace(/^\uFEFF/, "").split(/\r?\n/).map(line => {
+      if (line.includes("\t")) return line.split("\t").map(cell => cell.trim());
+      if (!line.includes("|")) return [line.trim()];
+      const cells = line.trim().split("|");
+      if (cells[0] === "") cells.shift();
+      if (cells[cells.length - 1] === "") cells.pop();
+      return cells.map(cell => cell.trim());
+    }).filter(row => row.some(Boolean) && !row.every(cell => !cell || /^:?-{2,}:?$/.test(cell)));
+  }
+
   function parseExcelPasteTable(text) {
-    const lines = String(text || "")
-      .split(/\r?\n/)
-      .map((line) => line.split("\t").map((cell) => cell.trim()))
-      .filter((row) => row.some(Boolean));
-    if (lines.length < 3) return null;
-
-    const sectionRow = lines[0].map(normArabicHeader);
-    const labelRow = lines[1].map(normArabicHeader);
-    const waTotals = { google: 0, referral: 0, tiktok: 0, snapchat: 0, instagram: 0, youtube: 0 };
-    const siteTotals = { google: 0, referral: 0, tiktok: 0, snapchat: 0, instagram: 0, youtube: 0 };
-    let repliedCol = -1;
-    let noReplyCol = -1;
-    let totalCol = -1;
+    const rows = spreadsheetRows(text);
+    if (!rows.length) return null;
+    const keys = ["tiktok", "snapchat", "google", "referral", "instagram", "youtube"];
     const labelMap = {
-      جوجل: "google",
-      توصيه: "referral",
-      تيكتوك: "tiktok",
-      سنابشات: "snapchat",
-      انستا: "instagram",
-      ميتا: "instagram",
-      يوتيوب: "youtube",
+      جوجل: "google", غوغل: "google", google: "google",
+      توصيه: "referral", referral: "referral",
+      تيكتوك: "tiktok", tiktok: "tiktok",
+      سنابشات: "snapchat", سناب: "snapchat", snapchat: "snapchat",
+      انستا: "instagram", انستغرام: "instagram", انستجرام: "instagram",
+      ميتا: "instagram", فيسبوك: "instagram", instagram: "instagram", meta: "instagram",
+      يوتيوب: "youtube", youtube: "youtube",
     };
-
-    function sectionForColumn(col) {
-      for (let i = col; i >= 0; i -= 1) {
-        if (sectionRow[i].includes("واتس")) return "wa";
-        if (sectionRow[i].includes("منص") || sectionRow[i].includes("موقع")) return "site";
-      }
-      return "";
+    const labelIndex = rows.findIndex(row => row.filter(cell => labelMap[normArabicHeader(cell)]).length >= 2);
+    const channels = [];
+    let repliedCol = -1, noReplyCol = -1, totalCol = -1, dataStart = 0;
+    let layoutSource = "headers";
+    if (labelIndex >= 0) {
+      dataStart = labelIndex + 1;
+      const headers = rows.slice(0, dataStart);
+      const sections = rows[labelIndex - 1] || rows[labelIndex];
+      let section = "";
+      rows[labelIndex].forEach((cell, col) => {
+        const heading = normArabicHeader(sections[col]);
+        if (/واتس|whatsapp/.test(heading)) section = "wa";
+        else if (/منص|موقع|website|platform/.test(heading)) section = "site";
+        const key = labelMap[normArabicHeader(cell)];
+        if (key && section) channels.push({ col, key, section });
+      });
+      headers.forEach(row => row.forEach((cell, col) => {
+        const label = normArabicHeader(cell);
+        if (/اجماليعدم|لميرد|noreply|unanswered/.test(label)) noReplyCol = col;
+        else if (/اجماليالرد|^رد$|^replied$/.test(label)) repliedCol = col;
+        else if (/اجماليالمبيعات|grandtotal|totalsales/.test(label)) totalCol = col;
+      }));
+      // A label row alone cannot identify which channel group belongs to WhatsApp.
+      if (!channels.length) return null;
+    } else {
+      // Existing 17-column template: six WhatsApp channels, spacer, six site channels,
+      // spacer, replied, no reply, total. Keep empty cells to preserve column positions.
+      const numericRows = rows.filter(row => row.some(cell => spreadsheetNumber(cell) !== null));
+      if (!numericRows.length || numericRows.some(row => row.length !== 17)) return null;
+      if (numericRows.some(row => row.some(cell => cell && spreadsheetNumber(cell) === null))) return null;
+      if (numericRows.some(row => row[6] || row[13])) return null;
+      keys.forEach((key, index) => {channels.push({ col:index, key, section:"wa" }, { col:index+7, key, section:"site" });});
+      repliedCol=14;noReplyCol=15;totalCol=16;layoutSource="standard";
     }
-
-    sectionRow.forEach((label, col) => {
-      if (label.includes("اجماليالرد")) repliedCol = col;
-      if (label.includes("اجماليعدم") || label.includes("لميرد")) noReplyCol = col;
-      if (label.includes("اجماليالمبيعات")) totalCol = col;
-    });
-
-    const summaryRow = [...lines].reverse().find((row) => {
-      if (String(row[0] || "").trim()) return false;
-      return row.slice(1).some((cell) =>
-        Number.isFinite(Number(String(cell || "").replace(",", ".")))
-      );
-    });
-
-    labelRow.forEach((label, col) => {
-      const key = labelMap[label];
-      const section = sectionForColumn(col);
-      if (!key || !section) return;
-      const summaryValue = summaryRow
-        ? Number(String(summaryRow[col] || "").replace(",", "."))
-        : NaN;
-      let total = Number.isFinite(summaryValue) ? summaryValue : 0;
-      if (!Number.isFinite(summaryValue)) {
-        for (let rowIdx = 2; rowIdx < lines.length; rowIdx += 1) {
-          if (lines[rowIdx] === summaryRow) continue;
-          const value = Number(String(lines[rowIdx][col] || "").replace(",", "."));
-          if (Number.isFinite(value)) total += value;
-        }
-      }
-      if (section === "wa") waTotals[key] += total;
-      if (section === "site") siteTotals[key] += total;
-    });
-
+    const usedCols = [...new Set([...channels.map(channel => channel.col), repliedCol, noReplyCol, totalCol].filter(col => col >= 0))];
+    const dataRows = rows.slice(dataStart).filter(row => usedCols.some(col => spreadsheetNumber(row[col]) !== null));
+    if (!dataRows.length) return null;
+    const isExplicitTotal = row => row.some(cell => /^(?:اجمالي|الاجمالي|مجموع|المجموع|total|grandtotal)$/.test(normArabicHeader(cell)));
+    let summaryIndex = dataRows.findLastIndex(isExplicitTotal);
+    if (summaryIndex < 0 && dataRows.length > 1) {
+      const candidate = dataRows[dataRows.length - 1];
+      const populated = usedCols.filter(col => spreadsheetNumber(candidate[col]) !== null);
+      const matchesSum = populated.length >= 2 && populated.every(col => {
+        const sum = dataRows.slice(0, -1).reduce((total, row) => total + (spreadsheetNumber(row[col]) ?? 0), 0);
+        return Math.abs(sum - spreadsheetNumber(candidate[col])) < 0.000001;
+      });
+      if (matchesSum) summaryIndex = dataRows.length - 1;
+    }
+    const summaryRow = summaryIndex >= 0 ? dataRows[summaryIndex] : null;
+    const detailRows = dataRows.filter((row, index) => index !== summaryIndex && !isExplicitTotal(row));
+    function columnTotal(col) {
+      if (col < 0) return null;
+      const savedTotal = summaryRow ? spreadsheetNumber(summaryRow[col]) : null;
+      if (savedTotal !== null) return savedTotal;
+      const values = detailRows.map(row => spreadsheetNumber(row[col])).filter(value => value !== null);
+      return values.length ? values.reduce((sum, value) => sum + value, 0) : null;
+    }
+    const waTotals = Object.fromEntries(keys.map(key => [key, 0]));
+    const siteTotals = Object.fromEntries(keys.map(key => [key, 0]));
+    channels.forEach(({col, key, section}) => {(section === "wa" ? waTotals : siteTotals)[key] += columnTotal(col) ?? 0;});
     const totalWhatsapp = Object.values(waTotals).reduce((a, b) => a + b, 0);
     const totalWebsite = Object.values(siteTotals).reduce((a, b) => a + b, 0);
-    let replied = 0;
-    let noReply = 0;
-    let grandTotal = 0;
-    const lastDataRow = summaryRow || lines[lines.length - 1] || [];
-    if (repliedCol >= 0) replied = Number(String(lastDataRow[repliedCol] || "").replace(",", ".")) || 0;
-    if (noReplyCol >= 0) noReply = Number(String(lastDataRow[noReplyCol] || "").replace(",", ".")) || 0;
-    if (totalCol >= 0) grandTotal = Number(String(lastDataRow[totalCol] || "").replace(",", ".")) || 0;
-    if (!replied) replied = totalWhatsapp + totalWebsite;
-    if (!grandTotal) grandTotal = replied + noReply;
-    if (!totalWhatsapp && !totalWebsite && !replied && !noReply) return null;
-    return { waTotals, siteTotals, totalWhatsapp, totalWebsite, replied, noReply, grandTotal };
+    const replied = columnTotal(repliedCol) ?? totalWhatsapp + totalWebsite;
+    const noReply = columnTotal(noReplyCol) ?? 0;
+    const grandTotal = columnTotal(totalCol) ?? replied + noReply;
+    return { waTotals, siteTotals, totalWhatsapp, totalWebsite, replied, noReply, grandTotal, layoutSource };
   }
 
   function parseMonthlyPasteStats(text) {
@@ -1903,6 +1929,7 @@
         siteTotals: table.siteTotals,
         raw: "",
         fromTable: true,
+        layoutSource: table.layoutSource,
       };
     }
     return {
@@ -2438,6 +2465,35 @@ function buildDailyReport(allRows, selectedStore, dateStr) {
     }
   }
 
+  function updateMonthlyPastePreview() {
+    if (!supplementPreview || !supplementPaste) return true;
+    const text = supplementPaste.value;
+    const stats = parseMonthlyPasteStats(text);
+    const invalid = Boolean(text.trim()) && /\t|\|/.test(text) && !stats.fromTable;
+    supplementPaste.setAttribute("aria-invalid", String(invalid));
+    supplementPreview.classList.toggle("paste-error", invalid);
+    if (!text.trim()) {
+      supplementPreview.textContent = "";
+    } else if (invalid) {
+      supplementPreview.textContent = currentLang === "ar"
+        ? "تعذرت قراءة ترتيب الجدول. انسخ عناوين مبيعات الواتس ومبيعات المنصة وأسماء القنوات مع الأرقام، ثم أعد اللصق."
+        : "Could not identify the table layout. Include the WhatsApp/site headings and channel names, then paste again.";
+    } else if (stats.fromTable) {
+      const heading = currentLang === "ar"
+        ? (stats.layoutSource === "standard" ? "تمت القراءة وفق ترتيب جدولك المعتاد: تيك توك، سناب، جوجل، توصية، ميتا، يوتيوب." : "تمت قراءة الجدول حسب عناوين الأعمدة.")
+        : (stats.layoutSource === "standard" ? "Using your standard order: TikTok, Snapchat, Google, Referral, Meta, YouTube." : "Table read using column headings.");
+      const summary = currentLang === "ar"
+        ? "الواتس: " + stats.totalWhatsapp + " | المنصة: " + stats.totalWebsite + " | رد: " + stats.replied + " | لم يرد: " + stats.noReply + " | الإجمالي: " + stats.grandTotal
+        : "WhatsApp: " + stats.totalWhatsapp + " | Site: " + stats.totalWebsite + " | Replied: " + stats.replied + " | No reply: " + stats.noReply + " | Total: " + stats.grandTotal;
+      supplementPreview.textContent = heading + "\n" + summary;
+    } else {
+      supplementPreview.textContent = currentLang === "ar" ? "سيتم إرفاق النص بالتقرير كما هو." : "This text will be included in the report as pasted.";
+    }
+    return !invalid;
+  }
+
+  if (supplementPaste) supplementPaste.addEventListener("input", updateMonthlyPastePreview);
+
   function getSupplementValues(type) {
     return {
       contentCount: parseSupplementNumber("supplement-content-count", null),
@@ -2471,6 +2527,7 @@ function buildDailyReport(allRows, selectedStore, dateStr) {
     }
     supplementModal.hidden = false;
     if (supplementPaste) supplementPaste.value = "";
+    if (type === "monthly") updateMonthlyPastePreview();
 
     return new Promise((resolve, reject) => {
       const cleanup = () => {
@@ -2480,6 +2537,7 @@ function buildDailyReport(allRows, selectedStore, dateStr) {
         supplementCancel && supplementCancel.removeEventListener("click", onCancel);
       };
       const onContinue = async () => {
+        if (type === "monthly" && !updateMonthlyPastePreview()) { supplementPaste.focus(); return; }
         const values = getSupplementValues(type);
         if (weekStart) {
           supplementContinue.disabled = true;

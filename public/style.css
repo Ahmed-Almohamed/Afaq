@@ -900,3 +900,6 @@ html[lang="ar"] .subtitle {
 @media (min-width: 600px) {
   .modal-grid { grid-template-columns: repeat(2, 1fr); }
 }
+.modal-preview { white-space: pre-wrap; overflow-wrap: anywhere; }
+.modal-preview.paste-error { color: #c44242; }
+.modal-textarea[aria-invalid="true"] { border-color: #c44242; }
